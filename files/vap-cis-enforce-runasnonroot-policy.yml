@@ -1,0 +1,87 @@
+# Validating Admission Policy
+# Name: Non-root containers
+#	Container engines allow containers to run applications as a non-root user with non-root group membership. 
+#	Typically, this non-default setting is configured when the container image is built. 
+#	Alternatively, Kubernetes can load containers into a Pod with SecurityContext:runAsUser specifying a non-zero user. 
+#	While the runAsUser directive effectively forces non-root execution at deployment, 
+#	NSA and CISA encourage developers to build container applications to execute as a non-root user. 
+#	Having non-root execution integrated at build time provides better assurance that applications will function correctly without root privileges.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0013
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "vap-cis-enforce-runasnonroot-policy"
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs", "cronjobs"]
+  validations:
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.containers) || \
+                   (object.spec.containers.all(c, has(c.securityContext) && \
+                   has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot))"
+      message: "All Containers in pod must set runAsNonRoot to true. Please refer: https://hub.armosec.io/docs/c-0013"
+
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.initContainers) || \
+                   (object.spec.initContainers.all(c, has(c.securityContext) && \
+                   has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot))"
+      message: "All initContainers in pod must set runAsNonRoot to true. Please refer: https://hub.armosec.io/docs/c-0013"
+
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.ephemeralContainers) || \
+                   (object.spec.ephemeralContainers.all(c, has(c.securityContext) && \
+                   has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot))"
+      message: "All ephemeralContainers in pod must set runAsNonRoot to true. Please refer: https://hub.armosec.io/docs/c-0013"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.containers) || \
+                   (object.spec.template.spec.containers.all(c, has(c.securityContext) && \
+                   has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot))"
+      message: "All Containers in Deployments, Replicaset, Daemonsets and Statefulsets must set runAsNonRoot to true. Please refer: https://hub.armosec.io/docs/c-0013"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.initContainers) || \
+                   (object.spec.template.spec.initContainers.all(c, has(c.securityContext) && \
+                   has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot))"
+      message: "All initContainers in Deployments, Replicaset, Daemonsets and Statefulsets must set runAsNonRoot to true. Please refer: https://hub.armosec.io/docs/c-0013"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.ephemeralContainers) || \
+                   (object.spec.template.spec.ephemeralContainers.all(c, has(c.securityContext) && \
+                   has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot))"
+      message: "All ephemeralContainers in Deployments, Replicaset, Daemonsets and Statefulsets must set runAsNonRoot to true. Please refer: https://hub.armosec.io/docs/c-0013"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.containers) || \
+                   (object.spec.jobTemplate.spec.template.spec.containers.all(c, has(c.securityContext) && \
+                   has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot))"
+      message: "All containers in CronJobs must set runAsNonRoot to true. Please refer: https://hub.armosec.io/docs/c-0013"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.initContainers) || \
+                   (object.spec.jobTemplate.spec.template.spec.initContainers.all(c, has(c.securityContext) && \
+                   has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot))"
+      message: "All initContainers in CronJobs must set runAsNonRoot to true. Please refer: https://hub.armosec.io/docs/c-0013"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.ephemeralContainers) || \
+                   (object.spec.jobTemplate.spec.template.spec.ephemeralContainers.all(c, has(c.securityContext) && \
+                   has(c.securityContext.runAsNonRoot) && c.securityContext.runAsNonRoot))"
+      message: "All ephemeralContainers in CronJobs must set runAsNonRoot to true. Please refer: https://hub.armosec.io/docs/c-0013"
+

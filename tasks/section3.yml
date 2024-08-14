@@ -1,0 +1,87 @@
+---
+- name: "SCORED | 3.1.1 | AUDIT | L1 | MASTER | Client certificate authentication should not be used for users"
+  debug:
+    msg: "Alternative mechanisms provided by Kubernetes such as the use of OIDC should be implemented in place of client certificates."
+  when: rule_3_1_1
+  tags:
+    - level1
+    - rule_3.1.1
+    - audit
+    - master
+
+
+- name: "SCORED | 3.2.1 | PATCH | L1 | MASTER | Ensure that a minimal audit policy is created"
+  block:
+  - name: "SCORED | 3.2.1 | PATCH | L1 | MASTER | Create target {{ audit_policy_directory }} directory"
+    ansible.builtin.file:
+      path: "{{ audit_policy_directory }}"
+      state: directory
+      mode: '0755'
+  - name: "SCORED | 3.2.1 | PATCH | L1 | MASTER | Copy file {{ audit_policy_file }} to {{ audit_policy_directory }} directory"
+    ansible.builtin.copy:
+      src: "{{ audit_policy_file }}"
+      dest: "{{ audit_policy_directory }}/{{ audit_policy_file | basename }}"
+      owner: root
+      group: root
+      mode: '0644'
+      backup: yes
+  - name: "SCORED | 3.2.1 | PATCH | L1 | MASTER | If argument '--audit-policy-file' does not exist, add it"
+    ansible.builtin.lineinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      state: present
+      regexp: '^(\s+- --audit-policy-file=).*$'
+      line: '    - --audit-policy-file={{ audit_policy_full_path }}'
+      insertafter: '^\s+- kube-apiserver$'
+      #backup: yes
+  - name: "SCORED | 3.2.1 | PATCH | L1 | MASTER | Ensure that the --audit-policy-file argument is set"
+    ansible.builtin.lineinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      state: present
+      regexp: '^(\s+- --audit-policy-file=)(?!{{ audit_policy_full_path }}).*$'
+      line: '\1{{ audit_policy_full_path }}'
+      insertafter: '^\s+- kube-apiserver$'
+      backrefs: true
+      #backup: yes
+  - name: "SCORED | 3.2.1 | PATCH | L1 | MASTER | Ensure volume for audit policy exists"
+    ansible.builtin.blockinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      insertafter: '^  volumes:$'
+      block: |2
+          - hostPath:
+              path: "{{ audit_policy_full_path }}"
+              type: FileOrCreate
+            name: audit-policy
+      marker: "# {mark} Ensure volume for audit policy exists"
+  - name: "SCORED | 3.2.1 | PATCH | L1 | MASTER | Ensure volume mount for audit policy exists"
+    ansible.builtin.blockinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      insertafter: '^    volumeMounts:$'
+      block: |2
+            - mountPath: "{{ audit_policy_full_path }}"
+              name: audit-policy
+              readOnly: false
+      marker: "# {mark} Ensure volumeMount for audit policy exists"
+  when: rule_3_2_1
+  tags:
+    - level1
+    - rule_3.2.1
+    - audit
+    - master
+
+- name: "SCORED | 3.2.2 | AUDIT | L2 | MASTER | Ensure that the audit policy covers key security concerns"
+  debug:
+    msg:
+    - "Audit Policies are defined in: {{ audit_policy_full_path }}"
+    - "Ensure that the audit policy created for the cluster covers key security concerns."
+    - "Consider modification of the audit policy in use on the cluster to include these items, at a minimum."
+    - "Review the audit policy provided for the cluster and ensure that it covers at least the following areas :"
+    - "Access to Secrets managed by the cluster. Care should be taken to only log Metadata for requests to Secrets, ConfigMaps, and TokenReviews, in order to avoid the risk of logging sensitive data."
+    - "Modification of `pod` and `deployment` objects."
+    - "Use of `pods/exec`, `pods/portforward`, `pods/proxy` and `services/proxy`."
+    - "For most requests, minimally logging at the Metadata level is recommended (the most basic level of logging)."
+  when: rule_3_2_2
+  tags:
+    - level2
+    - rule_3.2.2
+    - audit
+    - master

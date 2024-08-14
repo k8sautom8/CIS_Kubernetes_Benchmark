@@ -1,0 +1,30 @@
+# Validating Admission Policy
+# Name: Ensure that the seccomp profile is set to docker/default in your pod definitions
+#       Seccomp (secure computing mode) is used to restrict the set of system calls applications can make,
+#       allowing cluster administrators greater control over the security of workloads running in the cluster.
+#       Kubernetes disables seccomp profiles by default for historical reasons.
+#       You should enable it to ensure that the workloads have restricted actions available within the container.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0210
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: "vap-cis-restrict-seccomp-profiles-policy-binding"
+spec:
+  policyName: "vap-cis-restrict-seccomp-profiles-policy"
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        values:
+        - kube-node-lease
+        - kube-public
+        - kube-system
+        - calico-apiserver
+        - calico-system
+        - tigera-operator
+        - istio-system

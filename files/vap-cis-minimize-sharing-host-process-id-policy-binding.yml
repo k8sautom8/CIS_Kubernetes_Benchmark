@@ -1,0 +1,28 @@
+# Validating Admission Policy
+# Name: Minimize the admission of containers wishing to share the host process ID namespace
+#       A container running in the host's PID namespace can inspect processes running outside the container.
+#       If the container also has access to ptrace capabilities this can be used to escalate privileges outside of the container.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0214
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: "vap-cis-minimize-sharing-host-process-id-policy-binding"
+spec:
+  policyName: "vap-cis-minimize-sharing-host-process-id-policy"
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        values:
+        - kube-node-lease
+        - kube-public
+        - kube-system
+        - calico-apiserver
+        - calico-system
+        - tigera-operator
+        - istio-system

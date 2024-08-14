@@ -1,0 +1,121 @@
+# Validating Admission Policy
+# Name: Minimize the admission of containers with the NET_RAW capability
+#	Containers run with a default set of capabilities as assigned by the Container Runtime. 
+#	By default this can include potentially dangerous capabilities. 
+#	With Docker as the container runtime the NET_RAW capability is enabled which may be misused by malicious containers.
+#	Ideally, all containers should drop this capability.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0199
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "vap-cis-minimize-netraw-capabilities-policy"
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs", "cronjobs"]
+  validations:
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.containers) || \
+                   (object.spec.containers.all(container, has(container.securityContext) && \
+                   has(container.securityContext.capabilities) && \
+                   has(container.securityContext.capabilities.drop) && \
+                   (container.securityContext.capabilities.drop.exists_one(capability, capability == 'ALL') || \
+                   container.securityContext.capabilities.drop.exists_one(capability, capability == 'NET_RAW'))))"
+      message: "Containers in Pod must either drop `ALL` or `NET_RAW` capabilities. \
+                Please refer: https://hub.armosec.io/docs/c-0199"
+    
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.initContainers) || \
+                   (object.spec.initContainers.all(container, has(container.securityContext) && \
+                   has(container.securityContext.capabilities) && \
+                   has(container.securityContext.capabilities.drop) && \
+                   (container.securityContext.capabilities.drop.exists_one(capability, capability == 'ALL') || \
+                   container.securityContext.capabilities.drop.exists_one(capability, capability == 'NET_RAW'))))"
+      message: "initContainers in Pod must either drop `ALL` or `NET_RAW` capabilities. \
+                Please refer: https://hub.armosec.io/docs/c-0199"
+    
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.ephemeralContainers) || \
+                   (object.spec.ephemeralContainers.all(container, has(container.securityContext) && \
+                   has(container.securityContext.capabilities) && \
+                   has(container.securityContext.capabilities.drop) && \
+                   (container.securityContext.capabilities.drop.exists_one(capability, capability == 'ALL') || \
+                   container.securityContext.capabilities.drop.exists_one(capability, capability == 'NET_RAW'))))"
+      message: "ephemeralContainers in Pod must either drop `ALL` or `NET_RAW` capabilities. \
+                Please refer: https://hub.armosec.io/docs/c-0199"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.containers) || \
+                   (object.spec.template.spec.containers.all(container, has(container.securityContext) && \
+                   has(container.securityContext.capabilities) && \
+                   has(container.securityContext.capabilities.drop) && \
+                   (container.securityContext.capabilities.drop.exists_one(capability, capability == 'ALL') || \
+                   container.securityContext.capabilities.drop.exists_one(capability, capability == 'NET_RAW'))))"
+      message: "Containers in Deployments, Replicaset, Daemonsets and Statefulsets must either drop `ALL` or `NET_RAW` capabilities. \
+                Please refer: https://hub.armosec.io/docs/c-0199"
+    
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.initContainers) || \
+                   (object.spec.template.spec.initContainers.all(container, has(container.securityContext) && \
+                   has(container.securityContext.capabilities) && \
+                   has(container.securityContext.capabilities.drop) && \
+                   (container.securityContext.capabilities.drop.exists_one(capability, capability == 'ALL') || \
+                   container.securityContext.capabilities.drop.exists_one(capability, capability == 'NET_RAW'))))"
+      message: "initContainers in Deployments, Replicaset, Daemonsets and Statefulsets must either drop `ALL` or `NET_RAW` capabilities. \
+                Please refer: https://hub.armosec.io/docs/c-0199"
+    
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.ephemeralContainers) || \
+                   (object.spec.template.spec.ephemeralContainers.all(container, has(container.securityContext) && \
+                   has(container.securityContext.capabilities) && \
+                   has(container.securityContext.capabilities.drop) && \
+                   (container.securityContext.capabilities.drop.exists_one(capability, capability == 'ALL') || \
+                   container.securityContext.capabilities.drop.exists_one(capability, capability == 'NET_RAW'))))"
+      message: "ephemeralContainers in Deployments, Replicaset, Daemonsets and Statefulsets must either drop `ALL` or `NET_RAW` capabilities. \
+                Please refer: https://hub.armosec.io/docs/c-0199"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.containers) || \
+                   (object.spec.jobTemplate.spec.template.spec.containers.all(container, has(container.securityContext) && \
+                   has(container.securityContext.capabilities) && \
+                   has(container.securityContext.capabilities.drop) && \
+                   (container.securityContext.capabilities.drop.exists_one(capability, capability == 'ALL') || \
+                   container.securityContext.capabilities.drop.exists_one(capability, capability == 'NET_RAW'))))"
+      message: "Containers in CronJob must either drop `ALL` or `NET_RAW` capabilities. \
+                Please refer: https://hub.armosec.io/docs/c-0199"
+    
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.initContainers) || \
+                   (object.spec.jobTemplate.spec.template.spec.initContainers.all(container, has(container.securityContext) && \
+                   has(container.securityContext.capabilities) && \
+                   has(container.securityContext.capabilities.drop) && \
+                   (container.securityContext.capabilities.drop.exists_one(capability, capability == 'ALL') || \
+                   container.securityContext.capabilities.drop.exists_one(capability, capability == 'NET_RAW'))))"
+      message: "initContainers in CronJob must either drop `ALL` or `NET_RAW` capabilities. \
+                Please refer: https://hub.armosec.io/docs/c-0199"
+    
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.ephemeralContainers) || \
+                   (object.spec.jobTemplate.spec.template.spec.ephemeralContainers.all(container, has(container.securityContext) && \
+                   has(container.securityContext.capabilities) && \
+                   has(container.securityContext.capabilities.drop) && \
+                   (container.securityContext.capabilities.drop.exists_one(capability, capability == 'ALL') || \
+                   container.securityContext.capabilities.drop.exists_one(capability, capability == 'NET_RAW'))))"
+      message: "ephemeralContainers in CronJob must either drop `ALL` or `NET_RAW` capabilities. \
+                Please refer: https://hub.armosec.io/docs/c-0199"
+

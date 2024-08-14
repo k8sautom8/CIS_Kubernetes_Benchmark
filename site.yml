@@ -1,0 +1,16 @@
+---
+- hosts: "{{ k8shosts|default(omit) }}"
+  #connection: local
+  vars:
+      is_container: false
+  become: yes
+
+  # Confirm extra-vars k8shosts is passed as a tag and the k8shosts is what we are expecting
+  pre_tasks:
+    - fail: msg="extra-vars k8shosts must be set and the correct worker|master tag must be set"
+      when: k8shosts not in ansible_run_tags or k8shosts not in ['worker', 'master']
+  tags: always
+
+  roles:
+      - role: "{{ playbook_dir }}"
+        system_is_container: "{{ is_container | default(false) }}"

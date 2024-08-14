@@ -1,0 +1,43 @@
+# Validating Admission Policy
+# Name: Minimize the admission of containers wishing to share the host process ID namespace
+#	A container running in the host's PID namespace can inspect processes running outside the container. 
+#	If the container also has access to ptrace capabilities this can be used to escalate privileges outside of the container.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0214
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "vap-cis-minimize-sharing-host-process-id-policy"
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "daemonsets", "statefulsets"]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs", "cronjobs"]
+  validations:
+    - expression: "object.kind != 'Pod' || \
+                   !(has(object.spec.hostPID) && \
+                   object.spec.hostPID == true)"
+      message: "All pods must NOT set hostPID to true. Please refer: https://hub.armosec.io/docs/c-0214"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !(has(object.spec.template.spec.hostPID) && \
+                   object.spec.template.spec.hostPID == true)"
+      message: "All containers must NOT set hostPID to true. Please refer: https://hub.armosec.io/docs/c-0214"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !(has(object.spec.jobTemplate.spec.template.spec.hostPID) && \
+                   object.spec.jobTemplate.spec.template.spec.hostPID == true)"
+      message: "All jobs must NOT set hostPID to true. Please refer: https://hub.armosec.io/docs/c-0214"

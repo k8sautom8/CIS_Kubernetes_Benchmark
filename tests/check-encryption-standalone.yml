@@ -1,0 +1,60 @@
+---
+- name: Verify Kubernetes etcd encryption for secrets
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Set environment variables
+      set_fact:
+        kubeconfig: "/etc/kubernetes/admin.conf"
+        test_key_name: "test-key"
+        test_secret_name: "test-encryption"
+        test_secret: "secret1"  # Plaintext value of the secret
+
+    - name: Get the hostname of the current control plane host
+      shell: hostname
+      register: current_hostname
+
+    - name: Identify the etcd pod for the current host
+      shell: |
+        kubectl -n kube-system get pods -l component=etcd -o jsonpath='{.items[?(@.spec.nodeName=="{{ current_hostname.stdout }}")].metadata.name}'
+      register: etcd_pod_name
+
+    - name: Fail if etcd pod is not found
+      fail:
+        msg: "ERROR: unable to get pod name"
+      when: etcd_pod_name.stdout == ""
+
+    - name: Create a temporary Kubernetes secret
+      shell: |
+        kubectl create secret generic {{ test_secret_name }} --from-literal={{ test_key_name }}={{ test_secret }}
+      ignore_errors: yes
+
+    - name: Retrieve the secret from etcd
+      shell: |
+        kubectl exec {{ etcd_pod_name.stdout }} -n kube-system -- sh -c "
+        ETCDCTL_API=3 \
+        ETCDCTL_CACERT=/etc/kubernetes/pki/etcd/ca.crt \
+        ETCDCTL_CERT=/etc/kubernetes/pki/etcd/server.crt \
+        ETCDCTL_KEY=/etc/kubernetes/pki/etcd/server.key \
+        etcdctl get /registry/secrets/default/{{ test_secret_name }}"
+      register: etcd_secret
+      ignore_errors: yes
+
+    - name: Delete the temporary Kubernetes secret
+      shell: kubectl delete secret {{ test_secret_name }}
+      ignore_errors: yes
+
+    - name: Check if the secret key or value is found in etcd output
+      set_fact:
+        test_grep_check: "{{ etcd_secret.stdout | regex_search(test_secret_name) }}"
+        test_grep: "{{ etcd_secret.stdout | regex_search(test_key_name + '..' + test_secret) }}"
+
+    - name: Determine if the secret data is encrypted
+      set_fact:
+        is_encrypted: "{{ 'Yes' if test_grep_check == '' or test_grep == '' else 'No' }}"
+
+    - name: Display encryption check result
+      debug:
+        msg: "Secrets encryption check result: {{ is_encrypted }}"
+

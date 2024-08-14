@@ -1,0 +1,56 @@
+# Validating Admission Policy
+# Name: Ensure that the seccomp profile is set to docker/default in your pod definitions
+#	Seccomp (secure computing mode) is used to restrict the set of system calls applications can make, 
+#	allowing cluster administrators greater control over the security of workloads running in the cluster. 
+#	Kubernetes disables seccomp profiles by default for historical reasons. 
+#	You should enable it to ensure that the workloads have restricted actions available within the container.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0210
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "vap-cis-restrict-seccomp-profiles-policy"
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+  validations:
+    - expression: "!has(object.spec.template.spec.securityContext) || \
+                   !has(object.spec.template.spec.securityContext.seccompProfile) || \
+                   !has(object.spec.template.spec.securityContext.seccompProfile.type) || \
+                   object.spec.template.spec.securityContext.seccompProfile.type == 'RuntimeDefault' || \
+                   object.spec.template.spec.securityContext.seccompProfile.type == 'Localhost'"
+      message: "Use of custom Seccomp profiles is disallowed. The field spec.securityContext.seccompProfile.type must be unset or \
+                set to `RuntimeDefault` or `Localhost` Please refer: https://hub.armosec.io/docs/c-0210"
+    
+    - expression: "object.spec.template.spec.containers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.seccompProfile) || \
+                   !has(container.securityContext.seccompProfile.type) || \
+                   container.securityContext.seccompProfile.type == 'RuntimeDefault' || \
+                   container.securityContext.seccompProfile.type == 'Localhost')"
+      message: "Use of custom Seccomp profiles is disallowed. The field spec.containers[*].securityContext.seccompProfile.type must be unset \
+                set to `RuntimeDefault` or `Localhost` Please refer: https://hub.armosec.io/docs/c-0210"
+
+    - expression: "!has(object.spec.template.spec.initContainers) || \
+                   object.spec.template.spec.initContainers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.seccompProfile) || \
+                   !has(container.securityContext.seccompProfile.type) || \
+                   container.securityContext.seccompProfile.type == 'RuntimeDefault' || \
+                   container.securityContext.seccompProfile.type == 'Localhost')"
+      message: "Use of custom Seccomp profiles is disallowed. The field spec.initContainers[*].securityContext.seccompProfile.type must be unset \
+                set to `RuntimeDefault` or `Localhost` Please refer: https://hub.armosec.io/docs/c-0210"
+
+    - expression: "!has(object.spec.template.spec.ephemeralContainers) || \
+                   object.spec.template.spec.ephemeralContainers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.seccompProfile) || \
+                   !has(container.securityContext.seccompProfile.type) || \
+                   container.securityContext.seccompProfile.type == 'RuntimeDefault' || \
+                   container.securityContext.seccompProfile.type == 'Localhost')"
+      message: "Use of custom Seccomp profiles is disallowed. The field spec.ephemeralContainers[*].securityContext.seccompProfile.type must be unset or \
+                set to `RuntimeDefault` or `Localhost` Please refer: https://hub.armosec.io/docs/c-0210"

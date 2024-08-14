@@ -1,0 +1,93 @@
+# Validating Admission Policy
+# Name: Minimize the admission of privileged containers
+#	privileged containers have access to all Linux Kernel capabilities and devices. 
+#	A container running with full privileges can do almost everything that the host can do. 
+#	This flag exists to allow special use-cases, like manipulating the network stack and accessing devices.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0213
+# Severity: High
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "vap-cis-minimize-privileged-containers-policy"
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs", "cronjobs"]
+  validations:
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.containers) || \
+                   (object.spec.containers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.privileged) || \
+                   !c.securityContext.privileged))"
+      message: "All Containers in pods must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
+
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.initContainers) || \
+                   (object.spec.initContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.privileged) || \
+                   !c.securityContext.privileged))"
+      message: "All initContainers in pods must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
+
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.ephemeralContainers) || \
+                   (object.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.privileged) || \
+                   !c.securityContext.privileged))"
+      message: "All ephemeralContainers in pods must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.containers) || \
+                   (object.spec.template.spec.containers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.privileged) || \
+                   !c.securityContext.privileged))"
+      message: "All Containers in Deployments, Replicasets, Daemonsets, Statefulsets must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.initContainers) || \
+                   (object.spec.template.spec.initContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.privileged) || \
+                   !c.securityContext.privileged))"
+      message: "All initContainers in Deployments, Replicasets, Daemonsets, Statefulsets must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.ephemeralContainers) || \
+                   (object.spec.template.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.privileged) || \
+                   !c.securityContext.privileged))"
+      message: "All ephemeralContainers in Deployments, Replicasets, Daemonsets, Statefulsets must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.containers) || \
+                   (object.spec.jobTemplate.spec.template.spec.containers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.privileged) || \
+                   !c.securityContext.privileged))"
+      message: "All Containers in CronJobs must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.initContainers) || \
+                   (object.spec.jobTemplate.spec.template.spec.initContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.privileged) || \
+                   !c.securityContext.privileged))"
+      message: "All initContainers in CronJobs must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.ephemeralContainers) || \
+                   (object.spec.jobTemplate.spec.template.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.privileged) || \
+                   !c.securityContext.privileged))"
+      message: "All ephemeralContainers in CronJobs must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
+

@@ -1,0 +1,2 @@
+master: "{{ k8shosts == 'master' }}"
+worker: "{{ k8shosts == 'worker' }}"

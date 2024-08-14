@@ -1,0 +1,102 @@
+# Validating Admission Policy
+# Name: Prevent containers from escalating privileges
+#	Privileged escalation allows a process to change the security context under which its running. 
+#	In their default state, containers allow privilege escalation. 
+#	Attackers may use this default behavior to manipulate the application or process and to gain more permissions than they should have.
+# Author: Abhijit Jadhav
+# Docs: https://hub.datree.io/built-in-rules/prevent-escalating-privileges
+# Severity: Low
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "vap-cis-prevent-escalating-privileges-policy"
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "daemonsets", "statefulsets"]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs", "cronjobs"]
+  validations:
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.containers) || \
+                   (object.spec.containers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.allowPrivilegeEscalation) || \
+                   !c.securityContext.allowPrivilegeEscalation))"
+      message: "All Containers in Pod must NOT set allowPrivilegeEscalation to true. \
+                Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
+
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.initContainers) || \
+                   (object.spec.initContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.allowPrivilegeEscalation) || \
+                   !c.securityContext.allowPrivilegeEscalation))"
+      message: "All initContainers in Pod must NOT set allowPrivilegeEscalation to true. \
+                Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
+
+    - expression: "object.kind != 'Pod' || \
+                   !has(object.spec.ephemeralContainers) || \
+                   (object.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.allowPrivilegeEscalation) || \
+                   !c.securityContext.allowPrivilegeEscalation))"
+      message: "All ephemeralContainers in Pod must NOT set allowPrivilegeEscalation to true. \
+                Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.containers) || \
+                   (object.spec.template.spec.containers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.allowPrivilegeEscalation) || \
+                   !c.securityContext.allowPrivilegeEscalation))"
+      message: "All Containers in Deployments, Replicaset, Daemonsets and Statefulsets must NOT set allowPrivilegeEscalation to true. \
+                Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.initContainers) || \
+                   (object.spec.template.spec.initContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.allowPrivilegeEscalation) || \
+                   !c.securityContext.allowPrivilegeEscalation))"
+      message: "All initContainers in Deployments, Replicaset, Daemonsets and Statefulsets must NOT set allowPrivilegeEscalation to true. \
+                Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !has(object.spec.template.spec.ephemeralContainers) || \
+                   (object.spec.template.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.allowPrivilegeEscalation) || \
+                   !c.securityContext.allowPrivilegeEscalation))"
+      message: "All ephemeralContainers in Deployments, Replicaset, Daemonsets and Statefulsets must NOT set allowPrivilegeEscalation to true. \
+                Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.containers) || \
+                   (object.spec.jobTemplate.spec.template.spec.containers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.allowPrivilegeEscalation) || \
+                   !c.securityContext.allowPrivilegeEscalation))"
+      message: "All Containers in CronJob must NOT set allowPrivilegeEscalation to true. \
+                Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.initContainers) || \
+                   (object.spec.jobTemplate.spec.template.spec.initContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.allowPrivilegeEscalation) || \
+                   !c.securityContext.allowPrivilegeEscalation))"
+      message: "All initContainers in CronJob must NOT set allowPrivilegeEscalation to true. \
+                Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.ephemeralContainers) || \
+                   (object.spec.jobTemplate.spec.template.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
+                   !has(c.securityContext.allowPrivilegeEscalation) || \
+                   !c.securityContext.allowPrivilegeEscalation))"
+      message: "All ephemeralContainers in CronJob must NOT set allowPrivilegeEscalation to true. \
+                Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
+

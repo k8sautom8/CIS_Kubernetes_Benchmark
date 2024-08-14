@@ -1,0 +1,16 @@
+# Validating Admission Policy
+# Name: The default namespace should not be used
+#       Resources in a Kubernetes cluster should be segregated by namespace, 
+#       to allow for security controls to be applied at that level and to make it easier to manage resources.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0212
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: "vap-cis-restrict-objects-default-namespace-policy-binding"
+spec:
+  policyName: "vap-cis-restrict-objects-default-namespace-policy"
+  validationActions: [Deny]
+  matchResources: {}

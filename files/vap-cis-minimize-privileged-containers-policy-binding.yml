@@ -1,0 +1,29 @@
+# Validating Admission Policy
+# Name: Minimize the admission of privileged containers
+#       Privileged containers have access to all Linux Kernel capabilities and devices.
+#       A container running with full privileges can do almost everything that the host can do.
+#       This flag exists to allow special use-cases, like manipulating the network stack and accessing devices.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0213
+# Severity: High
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: "vap-cis-minimize-privileged-containers-policy-binding"
+spec:
+  policyName: "vap-cis-minimize-privileged-containers-policy"
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        values:
+        - kube-node-lease
+        - kube-public
+        - kube-system
+        - calico-apiserver
+        - calico-system
+        - tigera-operator
+        - istio-system

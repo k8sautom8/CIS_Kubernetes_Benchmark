@@ -1,0 +1,10 @@
+master:
+  hosts:
+    master-node01.example.local:
+    master-node02.example.local:
+    master-node03.example.local:
+worker:
+  hosts:
+    worker-node01.example.local:
+    worker-node02.example.local:
+    worker-node03.example.local:

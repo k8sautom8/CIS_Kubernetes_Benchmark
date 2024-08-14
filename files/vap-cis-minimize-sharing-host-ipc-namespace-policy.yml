@@ -1,0 +1,42 @@
+# Validating Admission Policy
+# Name: Minimize the admission of privileged hostIPC
+#	A container running in the host's IPC namespace can use IPC to interact with processes outside the container.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0215
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "vap-cis-minimize-sharing-host-ipc-namespace-policy"
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "daemonsets", "statefulsets"]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs", "cronjobs"]
+  validations:
+    - expression: "object.kind != 'Pod' || \
+                   !(has(object.spec.hostIPC) && \
+                   object.spec.hostIPC == true)"
+      message: "All pods must NOT set hostIPC to true. Please refer: https://hub.armosec.io/docs/c-0215"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !(has(object.spec.template.spec.hostIPC) && \
+                   object.spec.template.spec.hostIPC == true)"
+      message: "All containers must NOT set hostIPC to true. Please refer: https://hub.armosec.io/docs/c-0215"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !(has(object.spec.jobTemplate.spec.template.spec.hostIPC) && \
+                   object.spec.jobTemplate.spec.template.spec.hostIPC == true)"
+      message: "All jobs must NOT set hostIPC to true. Please refer: https://hub.armosec.io/docs/c-0215"

@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: busybox
+    env: prod
+  name: busybox
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: busybox
+  template:
+    metadata:
+      labels:
+        app: busybox
+    spec:
+      hostPID: false
+      hostIPC: false
+      hostNetwork: false
+      containers:
+#      - image: busybox:1.28
+      - image: busybox:1.28
+        name: busybox
+        command: [ "sh", "-c", "sleep 1h" ]
+        ports:
+        - containerPort: 80
+#          hostIP: 10.0.0.1
+#          hostPort: 8080
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "64Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+        securityContext:
+          runAsUser: 25000
+          runAsGroup: 300
+#          allowPrivilegeEscalation: true
+          readOnlyRootFilesystem: true # false is by default
+#          privileged: true
+          runAsNonRoot: true
+          capabilities:
+             drop: ["ALL"]
+#            add: ["ABC"]
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

@@ -1,0 +1,532 @@
+---
+- name: "SCORED | 5.1.1 | AUDIT | L1 | MASTER | Ensure that the cluster-admin role is only used where required"
+  block:
+  - name: "SCORED | 5.1.1 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_1_1
+    until: apiserver_start_5_1_1.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.1.1 | AUDIT | L1 | MASTER | Get list of clusterrolebindings for cluster-admin"
+    ansible.builtin.shell: |
+      kubectl --kubeconfig={{ kubeconfig_path }} get clusterrolebindings --all-namespaces -o jsonpath='{range .items[?(@.roleRef.name=="cluster-admin")]}{.metadata.name}{"\n"}{end}'
+    register: register_clusterrolebindings
+    changed_when: false
+  - name: "SCORED | 5.1.1 | AUDIT | L1 | MASTER | List of clusterrolebindings for cluster-admin"
+    debug:
+        var: register_clusterrolebindings.stdout
+  run_once: true
+  when: rule_5_1_1
+  tags:
+    - level1
+    - rule_5.1.1
+    - audit
+    - master
+    - followup
+
+- name: "SCORED | 5.1.2 | AUDIT | L1 | MASTER | Minimize access to secrets"
+  debug:
+    msg:
+      - "Where possible, remove `get`, `list` and `watch` access to `secret` objects in the cluster."
+      - "Review the users who have `get`, `list` or `watch` access to `secrets` objects in the Kubernetes API."
+  when: rule_5_1_2
+  tags:
+    - level1
+    - rule_5.1.2
+    - audit
+    - master
+    - followup
+
+
+- name: "SCORED | 5.1.3 | AUDIT | L2 | WORKER | Minimize wildcard use in Roles and ClusterRoles"
+  debug:
+    msg:
+      - "Kubernetes Roles and ClusterRoles provide access to resources based on sets of objects and actions that can be taken on those objects. It is possible to set either of these to be the wildcard '*' which matches all items."
+      - "Use of wildcards is not optimal from a security perspective as it may allow for inadvertent access to be granted when new resources are added to the Kubernetes API either as CRDs or in later versions of the product."
+      - "Where possible replace any use of wildcards in clusterroles and roles with specific objects or actions."
+      - "Retrieve the roles defined across each namespaces in the cluster and review for wildcards"
+      - "kubectl get roles --all-namespaces -o yaml"
+      - "Retrieve the cluster roles defined in the cluster and review for wildcards"
+      - "kubectl get clusterroles -o yaml"
+  when: rule_5_1_3
+  tags:
+    - level1
+    - rule_5.1.3
+    - audit
+    - worker
+    - followup
+
+
+- name: "SCORED | 5.1.4 | AUDIT | L1 | MASTER | Minimize access to create pods"
+  debug:
+    msg:
+      - "Where possible, remove `create` access to `pod` objects in the cluster."
+      - "Review the users who have create access to pod objects in the Kubernetes API."
+  when: rule_5_1_4
+  tags:
+    - level1
+    - rule_5.1.4
+    - audit
+    - master
+    - followup
+
+- name: "SCORED | 5.1.5 | AUDIT | L1 | MASTER | Ensure that default service accounts are not actively used."
+  block:
+  - name: "SCORED | 5.1.5 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_1_5
+    until: apiserver_start_5_1_5.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.1.5 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicy {{ vap_cis_prevent_default_service_accounts_policy }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_prevent_default_service_accounts_policy) }}"
+    register: policy_5_1_5
+    changed_when: "'created' in policy_5_1_5.stdout"
+  - name: "SCORED | 5.1.5 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicyBinding {{ vap_cis_prevent_default_service_accounts_policy_binding }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_prevent_default_service_accounts_policy_binding) }}"
+    register: policy_binding_5_1_5
+    changed_when: "'created' in policy_binding_5_1_5.stdout"
+  run_once: true
+  when: rule_5_1_5
+  tags:
+    - level1
+    - rule_5.1.5
+    - audit
+    - master
+
+
+- name: "SCORED | 5.1.6 | AUDIT | L1 | MASTER | Ensure that Service Account Tokens are only mounted where necessary"
+  debug:
+    msg:
+      - "Modify the definition of pods and service accounts which do not need to mount service account tokens to disable it."
+      - "Review pod and service account objects in the cluster and ensure that the option below is set, unless the resource explicitly requires this access."
+      - "automountServiceAccountToken: false"
+  when: rule_5_1_6
+  tags:
+    - level1
+    - rule_5.1.6
+    - audit
+    - master
+    - followup
+
+
+- name: "SCORED | 5.2.1 | AUDIT | L1 | MASTER | Minimize the admission of privileged containers"
+  block:
+  - name: "SCORED | 5.2.1 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_2_1
+    until: apiserver_start_5_2_1.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.2.1 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicy {{ vap_cis_minimize_privileged_containers_policy }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_privileged_containers_policy) }}"
+    register: policy_5_2_1
+    changed_when: "'created' in policy_5_2_1.stdout"
+  - name: "SCORED | 5.2.1 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicyBinding {{ vap_cis_minimize_privileged_containers_policy_binding }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_privileged_containers_policy_binding) }}"
+    register: policy_binding_5_2_1
+    changed_when: "'created' in policy_binding_5_2_1.stdout"
+  run_once: true
+  when: rule_5_2_1
+  tags:
+    - level1
+    - rule_5.2.1
+    - audit
+    - master
+
+- name: "SCORED | 5.2.2 | AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host process ID namespace"
+  block:
+  - name: "SCORED | 5.2.2 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_2_2
+    until: apiserver_start_5_2_2.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.2.2 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicy {{ vap_cis_minimize_sharing_host_process_id_policy }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_sharing_host_process_id_policy) }}"
+    register: policy_5_2_2
+    changed_when: "'created' in policy_5_2_2.stdout"
+  - name: "SCORED | 5.2.2 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicyBinding {{ vap_cis_minimize_sharing_host_process_id_policy_binding }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_sharing_host_process_id_policy_binding) }}"
+    register: policy_binding_5_2_2
+    changed_when: "'created' in policy_binding_5_2_2.stdout"
+  run_once: true
+  when: rule_5_2_2
+  tags:
+    - level1
+    - rule_5.2.2
+    - audit
+    - master
+
+
+- name: "SCORED | 5.2.3 | AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host IPC namespace"
+  block:
+  - name: "SCORED | 5.2.3 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_2_3
+    until: apiserver_start_5_2_3.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.2.3 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicy {{ vap_cis_minimize_sharing_host_ipc_namespace_policy }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_sharing_host_ipc_namespace_policy) }}"
+    register: policy_5_2_3
+    changed_when: "'created' in policy_5_2_3.stdout"
+  - name: "SCORED | 5.2.3 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicyBinding {{ vap_cis_minimize_sharing_host_ipc_namespace_policy_binding }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_sharing_host_ipc_namespace_policy_binding) }}"
+    register: policy_binding_5_2_3
+    changed_when: "'created' in policy_binding_5_2_3.stdout"
+  run_once: true
+  when: rule_5_2_3
+  tags:
+    - level1
+    - rule_5.2.3
+    - audit
+    - master
+
+
+- name: "SCORED | 5.2.4 | AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host network namespace"
+  block:
+  - name: "SCORED | 5.2.4 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_2_4
+    until: apiserver_start_5_2_4.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.2.4 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicy {{ vap_cis_minimize_sharing_host_network_policy }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_sharing_host_network_policy) }}"
+    register: policy_5_2_4
+    changed_when: "'created' in policy_5_2_4.stdout"
+  - name: "SCORED | 5.2.4 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicyBinding {{ vap_cis_minimize_sharing_host_network_policy_binding }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_sharing_host_network_policy_binding) }}"
+    register: policy_binding_5_2_4
+    changed_when: "'created' in policy_binding_5_2_4.stdout"
+  run_once: true
+  when: rule_5_2_4
+  tags:
+    - level1
+    - rule_5.2.4
+    - audit
+    - master
+
+
+- name: "SCORED | 5.2.5 | AUDIT | L1 | MASTER | Minimize the admission of containers with allowPrivilegeEscalation"
+  block:
+  - name: "SCORED | 5.2.5 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_2_5
+    until: apiserver_start_5_2_5.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.2.5 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicy {{ vap_cis_prevent_escalating_privileges_policy }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_prevent_escalating_privileges_policy) }}"
+    register: policy_5_2_5
+    changed_when: "'created' in policy_5_2_5.stdout"
+  - name: "SCORED | 5.2.5 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicyBinding {{ vap_cis_prevent_escalating_privileges_policy_binding }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_prevent_escalating_privileges_policy_binding) }}"
+    register: policy_binding_5_2_5
+    changed_when: "'created' in policy_binding_5_2_5.stdout"
+  run_once: true
+  when: rule_5_2_5
+  tags:
+    - level1
+    - rule_5.2.5
+    - audit
+    - master
+
+
+- name: "SCORED | 5.2.6 | AUDIT | L2 | MASTER | Minimize the admission of root containers"
+  block:
+  - name: "SCORED | 5.2.6 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_2_6
+    until: apiserver_start_5_2_6.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.2.6 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicy {{ vap_cis_enforce_runasnonroot_policy }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_enforce_runasnonroot_policy) }}"
+    register: policy_5_2_6
+    changed_when: "'created' in policy_5_2_6.stdout"
+  - name: "SCORED | 5.2.6 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicyBinding {{ vap_cis_enforce_runasnonroot_policy_binding }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_enforce_runasnonroot_policy_binding) }}"
+    register: policy_binding_5_2_6
+    changed_when: "'created' in policy_binding_5_2_6.stdout"
+  run_once: true
+  when: rule_5_2_6
+  tags:
+    - level2
+    - rule_5.2.6
+    - audit
+    - master
+
+
+- name: "SCORED | 5.2.7 | AUDIT | L1 | MASTER | Minimize the admission of containers with the NET_RAW capability"
+  block:
+  - name: "SCORED | 5.2.7 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_2_7
+    until: apiserver_start_5_2_7.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.2.7 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicy {{ vap_cis_minimize_netraw_capabilities_policy }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_netraw_capabilities_policy) }}"
+    register: policy_5_2_7
+    changed_when: "'created' in policy_5_2_7.stdout"
+  - name: "SCORED | 5.2.7 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicyBinding {{ vap_cis_minimize_netraw_capabilities_policy_binding }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_netraw_capabilities_policy_binding) }}"
+    register: policy_binding_5_2_7
+    changed_when: "'created' in policy_binding_5_2_7.stdout"
+  run_once: true
+  when: rule_5_2_7
+  tags:
+    - level1
+    - rule_5.2.7
+    - audit
+    - master
+
+
+- name: "SCORED | 5.2.8 | AUDIT | L1 | MASTER | Minimize the admission of containers with added capabilities"
+  block:
+  - name: "SCORED | 5.2.8 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_2_8
+    until: apiserver_start_5_2_8.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.2.8 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicy {{ vap_cis_minimize_addition_of_limited_capabilities_policy }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_addition_of_limited_capabilities_policy) }}"
+    register: policy_5_2_7
+    changed_when: "'created' in policy_5_2_7.stdout"
+  - name: "SCORED | 5.2.8 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicyBinding {{ vap_cis_minimize_addition_of_limited_capabilities_policy_binding }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_minimize_addition_of_limited_capabilities_policy_binding) }}"
+    register: policy_binding_5_2_8
+    changed_when: "'created' in policy_binding_5_2_8.stdout"
+  run_once: true
+  when: rule_5_2_8
+  tags:
+    - level1
+    - rule_5.2.8
+    - audit
+    - master
+
+
+- name: "SCORED | 5.2.9 | AUDIT | L2 | MASTER | Minimize the admission of containers with capabilities assigned"
+  debug:
+    msg:
+      - "Do not generally permit containers with capabilities"
+      - "Review the use of capabilities in applications running on your cluster. Where a namespace contains applications which do not require any Linux capabilities to operate consider adding a PSP which forbids the admission of containers which do not drop all capabilities."
+  when: rule_5_2_9
+  tags:
+    - level2
+    - rule_5.2.9
+    - audit
+    - master
+    - followup
+
+
+- name: "SCORED | 5.3.1 | AUDIT | L1 | MASTER | Ensure that the CNI in use supports Network Policies"
+  debug:
+    msg:
+      - "If the CNI plugin in use does not support network policies, consideration should be given to making use of a different plugin, or finding an alternate mechanism for restricting traffic in the Kubernetes cluster."
+  when: rule_5_3_1
+  tags:
+    - level1
+    - rule_5.3.1
+    - audit
+    - master
+    - followup
+
+
+- name: "SCORED | 5.3.2 | AUDIT | L2 | MASTER | Ensure that all Namespaces have Network Policies defined"
+  debug:
+    msg:
+      - "Use network policies to isolate traffic in your cluster network."
+      - "Follow the documentation and create `NetworkPolicy` objects as you need them."
+      - "Run the below command and review the `NetworkPolicy` objects created in the cluster."
+      - "kubectl --all-namespaces get networkpolicy"
+      - "Ensure that each namespace defined in the cluster has at least one Network Policy."
+  when: rule_5_3_2
+  tags:
+    - level2
+    - rule_5.3.2
+    - audit
+    - master
+    - followup
+
+
+- name: "SCORED | 5.4.1 | AUDIT | L2 | MASTER | Prefer using secrets as files over secrets as environment variables"
+  debug:
+    msg:
+      - "Kubernetes supports mounting secrets as data volumes or as environment variables. Minimize the use of environment variable secrets."
+      - "If possible, rewrite application code to read secrets from mounted secret files, rather than from environment variables."
+      - "Run the following command to find references to objects which use environment variables defined from secrets."
+      - "kubectl get all -o jsonpath='{range .items[?(@..secretKeyRef)]} {.kind} {.metadata.name} {'\n'}{end}' -A"
+  when: rule_5_4_1
+  tags:
+    - level2
+    - rule_5.4.1
+    - audit
+    - master
+    - followup
+
+
+- name: "SCORED | 5.4.2 | AUDIT | L2 | MASTER | Consider external secret storage"
+  debug:
+    msg:
+      - "Consider the use of an external secrets storage and management system, instead of using Kubernetes Secrets directly, if you have more complex secret management needs. Ensure the solution requires authentication to access secrets, has auditing of access to and use of secrets, and encrypts secrets. Some solutions also make it easier to rotate secrets."
+      - "Refer to the secrets management options offered by your cloud provider or a third-party secrets management solution."
+      - "Review your secrets management implementation."
+  when: rule_5_4_2
+  tags:
+    - level2
+    - rule_5.4.2
+    - audit
+    - master
+    - followup
+
+
+- name: "SCORED | 5.5.1 | AUDIT | L2 | MASTER | Configure Image Provenance using ImagePolicyWebhook admission controller"
+  debug:
+    msg:
+      - "Configure Image Provenance for your deployment."
+      - "Follow the Kubernetes documentation and setup image provenance."
+      - "Review the pod definitions in your cluster and verify that image provenance is configured as appropriate."
+  when: rule_5_5_1
+  tags:
+    - level2
+    - rule_5.5.1
+    - audit
+    - master
+    - followup
+
+
+- name: "SCORED | 5.7.1 | AUDIT | L1 | MASTER | Create administrative boundaries between resources using namespaces"
+  debug:
+    msg:
+      - "Follow the documentation and create namespaces for objects in your deployment as you need them."
+  when: rule_5_7_1
+  tags:
+    - level1
+    - rule_5.7.1
+    - audit
+    - master
+    - followup
+
+- name: "SCORED | 5.7.2 | AUDIT | L2 | MASTER | Ensure that the seccomp profile is set to docker/default in your pod definitions"
+  block:
+  - name: "SCORED | 5.7.2 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_7_2
+    until: apiserver_start_5_7_2.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.7.2 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicy {{ vap_cis_restrict_seccomp_profiles_policy }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_restrict_seccomp_profiles_policy) }}"
+    register: policy_5_7_2
+    changed_when: "'created' in policy_5_7_2.stdout"
+  - name: "SCORED | 5.7.2 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicyBinding {{ vap_cis_restrict_seccomp_profiles_policy_binding }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_restrict_seccomp_profiles_policy_binding) }}"
+    register: policy_binding_5_7_2
+    changed_when: "'created' in policy_binding_5_7_2.stdout"
+  run_once: true
+  when: rule_5_7_2
+  tags:
+    - level2
+    - rule_5.7.2
+    - audit
+    - master
+
+
+- name: "SCORED | 5.7.3 | AUDIT | L2 | MASTER | Apply Security Context to Your Pods and Containers"
+  debug:
+    msg:
+      - "Apply Security Context to Your Pods and Containers"
+      - "Follow the Kubernetes documentation and apply security contexts to your pods. For a suggested list of security contexts, you may refer to the CIS Security Benchmark for Docker Containers."
+      - "Review the pod definitions in your cluster and verify that you have security contexts defined as appropriate."
+  when: rule_5_7_3
+  tags:
+    - level2
+    - rule_5.7.3
+    - audit
+    - master
+    - followup
+
+
+- name: "SCORED | 5.7.4 | AUDIT | L2 | MASTER | The default namespace should not be used"
+  block:
+  - name: "SCORED | 5.7.4 | AUDIT | L1 | MASTER | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_7_4
+    until: apiserver_start_5_7_4.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "SCORED | 5.7.4 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicy {{ vap_cis_restrict_objects_default_namespace_policy }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_restrict_objects_default_namespace_policy) }}"
+    register: policy_5_7_4
+    changed_when: "'created' in policy_5_7_4.stdout"
+  - name: "SCORED | 5.7.4 | AUDIT | L1 | MASTER | apply ValidatingAdmissionPolicyBinding {{ vap_cis_restrict_objects_default_namespace_policy_binding }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_restrict_objects_default_namespace_policy_binding) }}"
+    register: policy_binding_5_7_4
+    changed_when: "'created' in policy_binding_5_7_4.stdout"
+  run_once: true
+  when: rule_5_7_4
+  tags:
+    - level2
+    - rule_5.7.4
+    - audit
+    - master

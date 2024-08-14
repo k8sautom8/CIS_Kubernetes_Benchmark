@@ -1,0 +1,101 @@
+---
+
+- name: Gather distribution info
+  setup:
+      gather_subset: distribution,!all,!min
+  when:
+      - ansible_distribution is not defined
+  tags:
+      - always
+
+- name: Check OS system
+  assert:
+      that:
+          - ansible_system == 'Linux'
+      success_msg: "{{ ansible_system }} is the detected system."
+      fail_msg: "This role can only be run against Linux. {{ ansible_system }} is not supported."
+  tags:
+      - always
+
+#- name: Get a list of all service objects
+#  community.kubernetes.k8s_info:
+#    api_version: v1
+#    kind: Service
+#    namespace: default
+#  register: service_list
+
+- name: Check ansible version
+  assert:
+      that: ansible_version.full is version_compare(min_ansible_version, '>=')
+      msg: You must use Ansible {{ min_ansible_version }} or greater
+  tags:
+      - always
+
+- name: "Make sure we backup kubernetes manifest files before we possibly touch them"
+  block:
+  - name: "Ensure {{ backup_dir }} directory exists, if not create it"
+    ansible.builtin.file:
+      path: "{{ backup_dir }}"
+      state: directory
+      mode: '0755'
+    changed_when: false
+  - name: "Find all files in manifest directory {{ manifest_file_directory }}"
+    ansible.builtin.find:
+      paths: "{{ manifest_file_directory }}"
+      file_type: file
+      patterns: "*.yaml"
+    register: k8s_manifest_files
+    changed_when: false
+  - name: "Copy all files in manifest directory {{ manifest_file_directory }} to {{ backup_dir }}"
+    ansible.builtin.copy:
+      src: "{{ item.path }}"
+      dest: "{{ backup_dir }}/{{ item.path | basename | replace('.yaml', '') }}_{{ ansible_date_time.epoch }}.yaml"
+      remote_src: true
+      owner: root
+      group: root
+      mode: '0644'
+    with_items: "{{ k8s_manifest_files.files }}"
+    changed_when: false
+    no_log: true
+  tags:
+      - always
+
+#  - name: Create archive of k8s manifest files
+#    community.general.archive:
+#      dest: "{{ backup_dir }}/k8s_manifest_files.tar.{ ansible_date_time.epoch }}"
+#      format: gz
+#      path: 
+#        - "{{ api_server_pod_specification_file }}"
+#        - "{{ controller_manager_pod_specification_file }}"
+#        - "{{ scheduler_pod_specification_file }}"
+#        - "{{ etcd_pod_specification_file }}"
+
+- name: Execute the Control Plane Components tasks
+  import_tasks: section1.yml
+  when: master and section1_patch | bool 
+  tags:
+      - section1
+
+- name: Execute the etcd related tasks
+  import_tasks: section2.yml
+  when: master and section2_patch | bool
+  tags:
+      - section2
+
+- name: Execute the Control Plane Configuration related tasks
+  import_tasks: section3.yml
+  when: master and section3_patch | bool
+  tags:
+      - section3
+
+- name: Execute the Worker Nodes related tasks
+  import_tasks: section4.yml
+  when: worker and section4_patch | bool
+  tags:
+      - section4
+
+- name: Execute the Policies related tasks
+  import_tasks: section5.yml
+  when: master and section5_patch | bool
+  tags:
+      - section5

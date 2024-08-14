@@ -1,0 +1,30 @@
+# Validating Admission Policy
+# Name: Minimize the admission of containers with the NET_RAW capability
+#       Containers run with a default set of capabilities as assigned by the Container Runtime.
+#       By default this can include potentially dangerous capabilities.
+#       With Docker as the container runtime the NET_RAW capability is enabled which may be misused by malicious containers.
+#       Ideally, all containers should drop this capability.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0199
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: "vap-cis-minimize-netraw-capabilities-policy-binding"
+spec:
+  policyName: "vap-cis-minimize-netraw-capabilities-policy"
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        values:
+        - kube-node-lease
+        - kube-public
+        - kube-system
+        - calico-apiserver
+        - calico-system
+        - tigera-operator
+        - istio-system

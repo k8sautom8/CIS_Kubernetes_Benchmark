@@ -1,0 +1,27 @@
+# Validating Admission Policy
+# Name: Minimize the admission of containers wishing to share the host network namespace
+#       A container running in the host's network namespace could access the local loopback device, and could access network traffic to and from other pods.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0216
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: "vap-cis-minimize-sharing-host-network-policy-binding"
+spec:
+  policyName: "vap-cis-minimize-sharing-host-network-policy"
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        values:
+        - kube-node-lease
+        - kube-public
+        - kube-system
+        - calico-apiserver
+        - calico-system
+        - tigera-operator
+        - istio-system

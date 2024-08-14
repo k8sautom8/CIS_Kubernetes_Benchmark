@@ -1,0 +1,296 @@
+---
+section1_patch: yes
+section2_patch: yes
+section3_patch: yes
+section4_patch: yes
+section5_patch: yes # NOTE: Section 5 requires Kubernetes version v1.30.0 and above
+
+min_ansible_version: "2.9"
+
+# We've defined complexity-high to mean that we cannot automatically remediate
+# the rule in question.  In the future this might mean that the remediation
+# may fail in some cases.
+complexity_high: no
+
+# Show "changed" for complex items not remediated per complexity-high setting
+# to make them stand out.  "changed" items on a second run of the role would
+# indicate items requiring manual review.
+audit_complex: yes
+
+# We've defined disruption-high to indicate items that are likely to cause
+# disruption in a normal workflow.  These items can be remediated automatically
+# but are disabled by default to avoid disruption.
+disruption_high: no
+
+# Show "changed" for disruptive items not remediated per disruption-high
+# setting to make them stand out.
+audit_disruptive: yes
+
+# tweak role to run in a non-privileged container
+system_is_container: no
+
+#set to false to skip tasks that either have not been developed or cannot be automated
+is_implemented: false
+
+#set to false to skip long running tasks
+long_running: false
+
+
+# These variables correspond with the CIS IDs defined in the CIS and allows you to enable/disable specific rules.
+# PLEASE NOTE: These work in coordination with the cat1, cat2, cat3 group variables. You must enable an entire group
+# in order for the variables below to take effect.
+
+# 121 total
+#### SECTION 1 ####
+  #LEVEL 1 | MASTER
+rule_1_1_1: true   # PATCH | L1 | MASTER | Ensure that the API server pod specification file permissions are set to 600 or more restrictive
+rule_1_1_2: true   # PATCH | L1 | MASTER | Ensure that the API server pod specification file ownership is set to root:root
+rule_1_1_3: true   # PATCH | L1 | MASTER | Ensure that the controller manager pod specification file permissions are set to 600 or more restrictive
+rule_1_1_4: true   # PATCH | L1 | MASTER | Ensure that the controller manager pod specification file ownership is set to root:root
+rule_1_1_5: true   # PATCH | L1 | MASTER | Ensure that the scheduler pod specification file permissions are set to 600 or more restrictive
+rule_1_1_6: true   # PATCH | L1 | MASTER | Ensure that the scheduler pod specification file ownership is set to root:root
+rule_1_1_7: true   # PATCH | L1 | MASTER | Ensure that the etcd pod specification file permissions are set to 600 or more restrictive
+rule_1_1_8: true   # PATCH | L1 | MASTER | Ensure that the etcd pod specification file ownership is set to root:root
+rule_1_1_9: true   # PATCH | L1 | MASTER | Ensure that the Container Network Interface file permissions are set to 600 or more restrictive
+rule_1_1_10: true  # PATCH | L1 | MASTER | Ensure that the Container Network Interface file ownership is set to root:root
+rule_1_1_11: true  # PATCH | L1 | MASTER | Ensure that the etcd data directory permissions are set to 700 or more restrictive
+rule_1_1_12: true  # PATCH | L1 | MASTER | Ensure that the etcd data directory ownership is set to etcd:etcd # NOTE: etcd:etcd user will be created if does not exists
+rule_1_1_13: true  # PATCH | L1 | MASTER | Ensure that the default administrative credential file permissions are set to 600 (Automated)
+rule_1_1_14: true  # PATCH | L1 | MASTER | Ensure that the default administrative credential file ownership is set to root:root (Automated)
+rule_1_1_15: true  # PATCH | L1 | MASTER | Ensure that the scheduler.conf file permissions are set to 600 or more restrictive
+rule_1_1_16: true  # PATCH | L1 | MASTER | Ensure that the scheduler.conf file ownership is set to root:root
+rule_1_1_17: true  # PATCH | L1 | MASTER | Ensure that the controller-manager.conf file permissions are set to 600 or more restrictive
+rule_1_1_18: true  # PATCH | L1 | MASTER | Ensure that the controller-manager.conf file ownership is set to root:root
+rule_1_1_19: true  # PATCH | L1 | MASTER | Ensure that the Kubernetes PKI directory and file ownership is set to root:root
+rule_1_1_20: true  # PATCH | L1 | MASTER | Ensure that the Kubernetes PKI certificate file permissions are set to 600 or more restrictive
+rule_1_1_21: true  # PATCH | L1 | MASTER | Ensure that the Kubernetes PKI key file permissions are set to 600
+rule_1_2_1: true   # PATCH | L1 | MASTER | Ensure that the --anonymous-auth argument is set to false
+rule_1_2_2: true   # PATCH | L1 | MASTER | Ensure that the --token-auth-file parameter is not set
+rule_1_2_3: true   # PATCH | L1 | MASTER | Ensure that the --DenyServiceExternalIPs parameter is not set
+rule_1_2_4: true   # PATCH | L1 | MASTER | Ensure that the --kubelet-client-certificate and --kubelet-client-key arguments are set as appropriate
+rule_1_2_5: false  # AUDIT | L1 | MASTER | Ensure that the --kubelet-certificate-authority argument is set as appropriate # Mote: this is not implemented - followup task
+rule_1_2_6: true   # AUDIT | L1 | MASTER | Ensure that the --authorization-mode argument is not set to AlwaysAllow
+rule_1_2_7: true   # AUDIT | L1 | MASTER | Ensure that the --authorization-mode argument includes Node
+rule_1_2_8: true   # PATCH | L1 | MASTER | Ensure that the --authorization-mode argument includes RBAC
+rule_1_2_9: true   # AUDIT | L1 | MASTER | Ensure that the admission control plugin EventRateLimit is set. NOTE: Check admission_control_eventratelimit_file and modify per your requirement
+rule_1_2_10: true  # AUDIT | L1 | MASTER | Ensure that the admission control plugin AlwaysAdmit is not set
+rule_1_2_11: false # AUDIT | L1 | MASTER | Ensure that the admission control plugin AlwaysPullImages is set. NOTE: AlwaysPullImages could cause delays and quality of service depending on your setup.
+rule_1_2_12: false # AUDIT | L1 | MASTER | Ensure that the admission control plugin SecurityContextDeny is set if PodSecurityPolicy is not used. NOTE: Both SecurityContextDeny and PodSecurityPolicy are deprecated, now replaced by the PodSecurity admission
+rule_1_2_13: true  # AUDIT | L1 | MASTER | Ensure that the admission control plugin ServiceAccount is set
+rule_1_2_14: true  # AUDIT | L1 | MASTER | Ensure that the admission control plugin NamespaceLifecycle is set
+rule_1_2_15: true  # AUDIT | L1 | MASTER | Ensure that the admission control plugin NodeRestriction is set
+rule_1_2_16: true  # PATCH | L1 | MASTER | Ensure that the --secure-port argument is not set to {{ secure_port }}
+rule_1_2_17: true  # PATCH | L1 | MASTER | Ensure that the --profiling argument is set to false
+rule_1_2_18: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-path argument is set. NOTE: file mount on kube-apiserver pod
+rule_1_2_19: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-maxage argument is set to 30 or as appropriate
+rule_1_2_20: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-maxbackup argument is set to 10 or as appropriate
+rule_1_2_21: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-maxsize argument is set to 100 or as appropriate
+rule_1_2_22: true  # PATCH | L1 | MASTER | Ensure that the --request-timeout argument is set as appropriate. NOTE : Recommeded value 300Sec is too high. default is 60Sec, we will set this to 120Sec
+rule_1_2_23: true  # PATCH | L1 | MASTER | Ensure that the --service-account-lookup argument is set to true
+rule_1_2_24: true  # PATCH | L1 | MASTER | Ensure that the --service-account-key-file argument is set as appropriate
+rule_1_2_25: true  # PATCH | L1 | MASTER | Ensure that the --etcd-certfile and --etcd-keyfile arguments are set as appropriate
+rule_1_2_26: true  # PATCH | L1 | MASTER | Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate
+rule_1_2_27: true  # PATCH | L1 | MASTER | Ensure that the --client-ca-file argument is set as appropriate
+rule_1_2_28: true  # PATCH | L1 | MASTER | Ensure that the --etcd-cafile argument is set as appropriate
+rule_1_2_29: true  # PATCH | L1 | MASTER | Ensure that the --encryption-provider-config argument is set as appropriate. NOTE: taks has been tested and works flawlessley, understand it and be careful applying this.
+rule_1_2_30: true  # PATCH | L1 | MASTER | Ensure that encryption providers are appropriately configured
+rule_1_2_31: true  # PATCH | L1 | MASTER | Ensure that the --tls-cipher-suites argument is set as appropriate
+rule_1_3_1: true   # PATCH | L1 | MASTER | Ensure that the --terminated-pod-gc-threshold argument is set as appropriate
+rule_1_3_2: true   # PATCH | L1 | MASTER | Ensure that the --profiling argument is set to false
+rule_1_3_3: true   # PATCH | L1 | MASTER | Ensure that the --use-service-account-credentials argument is set to true
+rule_1_3_4: true   # PATCH | L1 | MASTER | Ensure that the --service-account-private-key-file  argument is set as appropriate
+rule_1_3_5: true   # PATCH | L1 | MASTER | Ensure that the --root-ca-file argument is set as appropriate
+rule_1_3_7: true   # PATCH | L1 | MASTER | Ensure that the --bind-address argument is set to {{ controller_manager_bind_address }}
+rule_1_4_1: true   # PATCH | L1 | MASTER | Ensure that the --profiling argument is set to {{ scheduler_profiling }}
+rule_1_4_2: true   # PATCH | L1 | MASTER | Ensure that the --bind-address argument is set to {{ scheduler_bind_address }}
+  #LEVEL 2 | MASTER
+rule_1_3_6: true   # PATCH | L2 | MASTER | Ensure that the RotateKubeletServerCertificate argument is set to true
+
+#### SECTION2 ####
+  #LEVEL 1 | MASTER
+rule_2_1: true     # PATCH | L1 | MASTER | Ensure that the --cert-file and --key-file arguments are set as appropriate
+rule_2_2: true     # PATCH | L1 | MASTER | Ensure that the --client-cert-auth argument is set to true
+rule_2_3: true     # PATCH | L1 | MASTER | Ensure that the --auto-tls argument is not set to true
+rule_2_4: true     # PATCH | L1 | MASTER | Ensure that the --peer-cert-file and --peer-key-file arguments are set as appropriate
+rule_2_5: true     # PATCH | L1 | MASTER | Ensure that the --peer-client-cert-auth argument is set to true
+rule_2_6: true     # PATCH | L1 | MASTER | Ensure that the --peer-auto-tls argument is not set to true
+  #LEVEL 2 | MASTER
+rule_2_7: true     # PATCH | L2 | MASTER | Ensure that a unique Certificate Authority is used for etcd
+
+#### SECTION3 ####
+  #LEVEL 1 | MASTER
+rule_3_1_1: true   # AUDIT | L1 | MASTER | Client certificate authentication should not be used for users
+rule_3_2_1: true   # PATCH | L1 | MASTER | Ensure that a minimal audit policy is created
+  #LEVEL 2 | MASTER
+rule_3_2_2: true   # AUDIT | L2 | MASTER | Ensure that the audit policy covers key security concerns
+
+
+#### SECTION4 ####
+  #LEVEL 1 | WORKER
+rule_4_1_1: true   # PATCH | L1 | WORKER | Ensure that the `kubelet` service file has permissions of `600` or more restrictive
+rule_4_1_2: true   # PATCH | L1 | WORKER | Ensure that the kubelet service file ownership is set to root:root
+rule_4_1_3: true   # PATCH | L1 | WORKER | If proxy kubeconfig file exists ensure permissions are set to 600 or more restrictive
+rule_4_1_4: true   # PATCH | L1 | WORKER | If proxy kubeconfig file exists ensure ownership is set to root:root
+rule_4_1_5: true   # PATCH | L1 | WORKER | Ensure that the --kubeconfig kubelet.conf file permissions are set to 600 or more restrictive
+rule_4_1_6: true   # PATCH | L1 | WORKER | Ensure that the --kubeconfig kubelet.conf file ownership is set to root:root
+rule_4_1_7: true   # PATCH | L1 | WORKER | Ensure that the certificate authorities file permissions are set to 600 or more restrictive. NOTE: CIS write up is incorrect about --client-ca-file check. The file is now defined as clientCAFile in Kubelet config /var/lib/kubelet/config.yaml
+rule_4_1_8: true   # PATCH | L1 | WORKER | Ensure that the client certificate authorities file ownership is set to root:root. NOTE: CIS write up is incorrect about --client-ca-file check. The file is now defined as clientCAFile in Kubelet config /var/lib/kubelet/config.yaml
+rule_4_1_9: true   # PATCH | L1 | WORKER | Ensure that the kubelet config.yaml configuration file has permissions set to 600 or more restrictive
+rule_4_1_10: true  # PATCH | L1 | WORKER | Ensure that the kubelet config.yaml configuration file ownership is set to root:root
+rule_4_2_1: true   # PATCH | L1 | WORKER | Ensure that the --anonymous-auth argument is set to false
+rule_4_2_2: true   # PATCH | L1 | WORKER | Ensure that the --authorization-mode argument is not set to AlwaysAllow
+rule_4_2_3: true   # PATCH | L1 | WORKER | Ensure that the --client-ca-file argument is set as appropriate
+rule_4_2_4: true   # PATCH | L1 | WORKER | Verify that the --read-only-port argument is set to 0
+rule_4_2_5: true   # PATCH | L1 | WORKER | Ensure that the --streaming-connection-idle-timeout argument is not set to 0
+rule_4_2_6: true   # PATCH | L1 | WORKER | Ensure that the --protect-kernel-defaults argument is set to true
+rule_4_2_7: true   # PATCH | L1 | WORKER | Ensure that the --make-iptables-util-chains argument is set to true
+rule_4_2_8: true   # AUDIT | L1 | WORKER | Ensure that the --hostname-override argument is not set
+rule_4_2_10: false # PATCH | L1 | WORKER | Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate. NOTE: needs follow-up, do not use it
+rule_4_2_11: true  # PATCH | L1 | WORKER | Ensure that the --rotate-certificates argument is not set to false
+rule_4_2_12: true  # PATCH | L1 | WORKER | Verify that the RotateKubeletServerCertificate argument is set to true. NOTE: serverTLSBootstrap will be set to true; not RotateKubeletServerCertificate. any of these have same effect
+rule_4_2_13: true  # PATCH | L1 | WORKER | Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers 
+  #LEVEL 2 | WORKER
+rule_4_2_9: true   # PATCH | L2 | WORKER | Ensure that the --event-qps argument is set to 0 or a level which ensures appropriate event capture. NOTE: Do not set 'event_record_qps' anything other than 0; Events are an important source of security information and analytics that ensure that your environment is consistently monitored using the event data
+
+#### SECTION5 ####
+# NOTE: Section 5 use ValidatingAdmissionPolicy which is apiVersion: admissionregistration.k8s.io/v1 in Kubernetes Version 1.30.0 and above. The ValidatingAdmissionPolicy is enabled by default in v1.30.0 and above
+# For lower Kubernetes version the feature will need to be enabled with feature-gates and is in alpha and beta release depending on the version of Kubernetes cluster you have
+  #LEVEL 1 | MASTER
+rule_5_1_1: true  # AUDIT | L1 | MASTER | Ensure that the cluster-admin role is only used where required 
+rule_5_1_2: false  # AUDIT | L1 | MASTER | Minimize access to secrets
+rule_5_1_4: false  # AUDIT | L1 | MASTER | Minimize access to create pods
+rule_5_1_5: true   # AUDIT | L1 | MASTER | Ensure that default service accounts are not actively used. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_1_6: false  # AUDIT | L1 | MASTER | Ensure that Service Account Tokens are only mounted where necessary
+rule_5_2_1: true   # AUDIT | L1 | MASTER | Minimize the admission of privileged containers. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_2: true   # AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host process ID namespace. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_3: true   # AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host IPC namespace. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_4: true   # AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host network namespace. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_5: true   # AUDIT | L1 | MASTER | Minimize the admission of containers with allowPrivilegeEscalation. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_7: true   # AUDIT | L1 | MASTER | Minimize the admission of containers with the NET_RAW capability. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_8: true   # AUDIT | L1 | MASTER | Minimize the admission of containers with added capabilities. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_3_1: false  # AUDIT | L1 | MASTER | Ensure that the CNI in use supports Network Policies
+rule_5_7_1: false  # AUDIT | L1 | MASTER | Create administrative boundaries between resources using namespaces
+  #LEVEL 2 | MASTER
+rule_5_2_6: true  # AUDIT | L2 | MASTER | Minimize the admission of root containers
+rule_5_2_9: false  # AUDIT | L2 | MASTER | Minimize the admission of containers with capabilities assigned
+rule_5_3_2: false  # AUDIT | L2 | MASTER | Ensure that all Namespaces have Network Policies defined
+rule_5_4_1: false  # AUDIT | L2 | MASTER | Prefer using secrets as files over secrets as environment variables
+rule_5_4_2: false  # AUDIT | L2 | MASTER | Consider external secret storage
+rule_5_5_1: false  # AUDIT | L2 | MASTER | Configure Image Provenance using ImagePolicyWebhook admission controller
+rule_5_7_2: true   # AUDIT | L2 | MASTER | Ensure that the seccomp profile is set to docker/default in your pod definitions. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_7_3: false  # AUDIT | L2 | MASTER | Apply Security Context to Your Pods and Containers
+rule_5_7_4: true   # AUDIT | L2 | MASTER | The default namespace should not be used. NOTE: Kubernetes Version 1.30.0 and above.
+  #LEVEL 1 | WORKER
+rule_5_1_3: false  # AUDIT | L2 | WORKER | Minimize wildcard use in Roles and ClusterRoles
+
+# API Server pod specification file
+manifest_file_directory: "/etc/kubernetes/manifests"
+api_server_pod_specification_file: "/etc/kubernetes/manifests/kube-apiserver.yaml"
+kubelet_client_certificate_path: "/etc/kubernetes/pki/apiserver-kubelet-client.crt"
+kubelet_client_key_path: "/etc/kubernetes/pki/apiserver-kubelet-client.key"
+kubelet_certificate_authority_path: "/this/path/needs/to/be/defined"
+insecure_port: 0
+secure_port: 6443
+audit_log_directory: "/var/log/audit"  # This directory will be created by the playbook
+audit_log_path: "/var/log/audit/kubeapi_audit.log"  # This file will be created by k8s after above mount is completed by playbook
+audit_policy_full_path: "/etc/kubernetes/audit-policy.yaml"  # This file will be created by the playbook
+audit_policy_directory: "/etc/kubernetes"  # This directory will be verified by the playbook
+audit_policy_file: "audit-policy.yaml"  # This file will be copied from files/audit-policy.yaml by the playbook in to defined path. This is basic audit file please change as per your requirements.
+audit_log_maxage: 30
+audit_log_maxbackup: 10
+audit_log_maxsize: 100
+request_timeout: 120s
+service_account_key_file: "/etc/kubernetes/pki/sa.pub"
+etcd_certfile: "/etc/kubernetes/pki/apiserver-etcd-client.crt"
+etcd_keyfile: "/etc/kubernetes/pki/apiserver-etcd-client.key"
+tls_cert_file: "/etc/kubernetes/pki/apiserver.crt"
+tls_private_key_file: "/etc/kubernetes/pki/apiserver.key"
+client_ca_file: "/etc/kubernetes/pki/ca.crt"
+etcd_cafile: "/etc/kubernetes/pki/etcd/ca.crt"
+encryption_provider_config_file: "encryptionConfig.yaml"  # This file will be copied from files/encryptionConfig.yaml 
+encryption_provider_config_directory: "/etc/kubernetes/enc" # This directory will be created by playbook
+tls_cipher_suites: "TLS_AES_128_GCM_SHA256,TLS_AES_256_GCM_SHA384,TLS_CHACHA20_POLY1305_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,TLS_RSA_WITH_3DES_EDE_CBC_SHA,TLS_RSA_WITH_AES_128_CBC_SHA,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA,TLS_RSA_WITH_AES_256_GCM_SHA384"
+feature_gates: "RotateKubeletServerCertificate=true"
+
+# Controller Manager pod specification file
+controller_manager_pod_specification_file: "/etc/kubernetes/manifests/kube-controller-manager.yaml"
+terminated_pod_gc_threshold: 500 # default garbage collection is 12,500 terminated pods which might be too high for your system to sustain. Setting it to 10 will be too aggressive.
+controller_manager_profiling: "false"
+use_service_account_credentials: "true"
+service_account_private_key_file: "/etc/kubernetes/pki/sa.key"
+root_ca_file: "/etc/kubernetes/pki/ca.crt"
+controller_manager_bind_address: 127.0.0.1
+
+
+# Scheduler pod specification file
+scheduler_pod_specification_file: "/etc/kubernetes/manifests/kube-scheduler.yaml"
+scheduler_profiling: "false"
+scheduler_bind_address: 127.0.0.1
+
+# etcd pod specification file
+etcd_pod_specification_file: "/etc/kubernetes/manifests/etcd.yaml"
+etcd_data_directory: "/var/lib/etcd"
+etcd_cert_file: "/etc/kubernetes/pki/etcd/server.crt"
+etcd_key_file: "/etc/kubernetes/pki/etcd/server.key"
+client_cert_auth: "true"
+auto_tls: "false"
+peer_cert_file: "/etc/kubernetes/pki/etcd/peer.crt"
+peer_key_file: "/etc/kubernetes/pki/etcd/peer.key"
+peer_client_cert_auth: "true"
+peer_auto_tls: "false"
+trusted_ca_file: "/etc/kubernetes/pki/etcd/ca.crt"
+
+
+#kubelet
+kubelet_service_file: "/usr/lib/systemd/system/kubelet.service.d/10-kubeadm.conf"
+proxy_kubeconfig_file: "/var/lib/kube-proxy/config.conf"
+kubeconfig_kubelet_conf_file: "/etc/kubernetes/kubelet.conf"
+certificate_authorities_file: "/this/path/needs/to/be/defined"
+kubelet_config_file: "/var/lib/kubelet/config.yaml"
+kubelet_authentication_anonymous_enabled: "true"
+kubelet_authentication_x509_clientCAFile: "/etc/kubernetes/pki/ca.crt"
+streaming_connection_idle_timeout: 10m
+kubelet_tls_cert_file: "/this/path/needs/to/be/defined"
+kubelet_tls_private_key_file: "/this/path/needs/to/be/defined"
+kubelet_tls_cipher_suites: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256"
+event_record_qps: 0
+
+# Misc 
+kubeconfig_path: /etc/kubernetes/admin.conf
+anonymous_auth_service_account: kubeapi-hc-sa # this service account will be provisioined by the playbook required for setting --anonymous-auth
+anonymous_auth_sa_namespace: kube-system
+anonymous_auth_sa_secret: kubeapi-hc-sa-secret # this secret will be provisioined by the playbook required for setting --anonymous-auth
+backup_dir: /root/k8s_ansible_backup  # this directory will be created by the playbook. The mainefest files backup are made to this directory before we run the playbook.
+admin_conf_file: "/etc/kubernetes/admin.conf"
+super_admin_conf_file: "/etc/kubernetes/super-admin.conf"
+scheduler_conf_file: "/etc/kubernetes/scheduler.conf"
+controller_manager_conf_file: "/etc/kubernetes/controller-manager.conf"
+pki_directory: "/etc/kubernetes/pki"
+admission_control_config_directory: "/etc/kubernetes/pki/AdmissionConfiguration" # this directory wil be created by the playbook
+admission_control_config_file: "admission-control.yaml" # the file must exists in role/files directory
+admission_control_eventratelimit_file: "admission-eventratelimit.yaml" # the file must exists in role/files directory. Edit file/parameters as per your requirements.
+
+# ValidatingAdmissionPolicy
+# NOTE: Section 5 requires Kubernetes version v1.30.0 and above
+vap_cis_enforce_runasnonroot_policy: "vap-cis-enforce-runasnonroot-policy.yml"
+vap_cis_enforce_runasnonroot_policy_binding: "vap-cis-enforce-runasnonroot-policy-binding.yml"
+vap_cis_minimize_addition_of_limited_capabilities_policy: "vap-cis-minimize-addition-of-limited-capabilities-policy.yml"
+vap_cis_minimize_addition_of_limited_capabilities_policy_binding: "vap-cis-minimize-addition-of-limited-capabilities-policy-binding.yml"
+vap_cis_minimize_netraw_capabilities_policy: "vap-cis-minimize-netraw-capabilities-policy.yml"
+vap_cis_minimize_netraw_capabilities_policy_binding: "vap-cis-minimize-netraw-capabilities-policy-binding.yml"
+vap_cis_minimize_privileged_containers_policy: "vap-cis-minimize-privileged-containers-policy.yml"
+vap_cis_minimize_privileged_containers_policy_binding: "vap-cis-minimize-privileged-containers-policy-binding.yml"
+vap_cis_minimize_sharing_host_ipc_namespace_policy: "vap-cis-minimize-sharing-host-ipc-namespace-policy.yml"
+vap_cis_minimize_sharing_host_ipc_namespace_policy_binding: "vap-cis-minimize-sharing-host-ipc-namespace-policy-binding.yml"
+vap_cis_minimize_sharing_host_network_policy: "vap-cis-minimize-sharing-host-network-policy.yml"
+vap_cis_minimize_sharing_host_network_policy_binding: "vap-cis-minimize-sharing-host-network-policy-binding.yml"
+vap_cis_minimize_sharing_host_process_id_policy: "vap-cis-minimize-sharing-host-process-id-policy.yml"
+vap_cis_minimize_sharing_host_process_id_policy_binding: "vap-cis-minimize-sharing-host-process-id-policy-binding.yml"
+vap_cis_prevent_default_service_accounts_policy: "vap-cis-prevent-default-service-accounts-policy.yml"
+vap_cis_prevent_default_service_accounts_policy_binding: "vap-cis-prevent-default-service-accounts-policy-binding.yml"
+vap_cis_restrict_objects_default_namespace_policy: "vap-cis-restrict-objects-default-namespace-policy.yml"
+vap_cis_restrict_objects_default_namespace_policy_binding: "vap-cis-restrict-objects-default-namespace-policy-binding.yml"
+vap_cis_restrict_seccomp_profiles_policy: "vap-cis-restrict-seccomp-profiles-policy.yml"
+vap_cis_restrict_seccomp_profiles_policy_binding: "vap-cis-restrict-seccomp-profiles-policy-binding.yml"
+vap_cis_prevent_escalating_privileges_policy: "vap-cis-prevent-escalating-privileges-policy.yml"
+vap_cis_prevent_escalating_privileges_policy_binding: "vap-cis-prevent-escalating-privileges-policy-binding.yml"

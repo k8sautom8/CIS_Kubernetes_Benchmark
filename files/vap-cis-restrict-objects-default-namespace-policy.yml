@@ -1,0 +1,62 @@
+# Validating Admission Policy
+# Name: The default namespace should not be used
+#       Resources in a Kubernetes cluster should be segregated by namespace, 
+#       to allow for security controls to be applied at that level and to make it easier to manage resources.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0212
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "vap-cis-restrict-objects-default-namespace-policy"
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: [
+          "configmaps", "endpoints", "persistentvolumeclaims", "pods", "podtemplates",
+          "replicationcontrollers", "secrets", "serviceaccounts", "services"
+        ]
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: [
+          "daemonsets", "deployments", "replicasets", "statefulsets"
+        ]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1", "v1beta1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: [
+          "cronjobs", "jobs"
+        ]
+      - apiGroups: ["policy"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["poddisruptionbudgets"]
+      - apiGroups: ["rbac.authorization.k8s.io"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["roles", "rolebindings"]
+      - apiGroups: ["autoscaling"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["horizontalpodautoscalers"]
+      - apiGroups: ["networking.k8s.io"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["ingresses"]
+      - apiGroups: ["storage.k8s.io"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["csistoragecapacities"]
+      - apiGroups: ["coordination.k8s.io"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["leases"]
+  validations:
+    - expression: "object.metadata.namespace != 'default'"
+      message: "Creation of this resource type is not allowed in the default namespace. Please refer: https://hub.armosec.io/docs/c-0212"

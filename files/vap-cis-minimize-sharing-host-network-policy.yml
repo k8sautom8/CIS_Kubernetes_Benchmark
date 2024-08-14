@@ -1,0 +1,42 @@
+# Validating Admission Policy
+# Name: Minimize the admission of containers wishing to share the host network namespace
+#	A container running in the host's network namespace could access the local loopback device, and could access network traffic to and from other pods.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0216
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "vap-cis-minimize-sharing-host-network-policy"
+spec:
+  failurePolicy: Fail
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "daemonsets", "statefulsets"]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs", "cronjobs"]
+  validations:
+    - expression: "object.kind != 'Pod' || \
+                   !(has(object.spec.hostNetwork) && \
+                   object.spec.hostNetwork == true)"
+      message: "All pods must NOT set hostNetwork to true. Please refer: https://hub.armosec.io/docs/c-0216"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   !(has(object.spec.template.spec.hostNetwork) && \
+                   object.spec.template.spec.hostNetwork == true)"
+      message: "All containers must NOT set hostNetwork to true. Please refer: https://hub.armosec.io/docs/c-0216"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !(has(object.spec.jobTemplate.spec.template.spec.hostNetwork) && 
+                   object.spec.jobTemplate.spec.template.spec.hostNetwork == true)"
+      message: "All jobs must NOT set hostNetwork to true. Please refer: https://hub.armosec.io/docs/c-0216"

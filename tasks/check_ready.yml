@@ -1,0 +1,13 @@
+---
+- name: Check if all containers in kube-system are ready
+ command: kubectl get pods -n kube-system -o json
+ register: kube_system_status
+ until: >
+   kube_system_status.json | json_query(
+     'items[*].status.containerStatuses[*].ready'
+   ) | flatten | unique | length == 1 and
+   kube_system_status.json | json_query(
+     'items[*].status.containerStatuses[*].ready'
+   ) | flatten | unique | [0] == true
+ retries: 10
+ delay: 30

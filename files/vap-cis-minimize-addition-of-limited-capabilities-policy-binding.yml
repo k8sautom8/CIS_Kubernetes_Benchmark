@@ -1,0 +1,28 @@
+# Validating Admission Policy
+# Name: Minimize the admission of containers with added capabilities
+#       Containers run with a default set of capabilities as assigned by the Container Runtime.
+#       Capabilities outside this set can be added to containers which could expose them to risks of container breakout attacks.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0200
+# Severity: Medium
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: "vap-cis-minimize-addition-of-limited-capabilities-policy-binding"
+spec:
+  policyName: "vap-cis-minimize-addition-of-limited-capabilities-policy"
+  validationActions: [Deny]
+  matchResources:
+    namespaceSelector:
+      matchExpressions:
+      - key: kubernetes.io/metadata.name
+        operator: NotIn
+        values:
+        - kube-node-lease
+        - kube-public
+        - kube-system
+        - calico-apiserver
+        - calico-system
+        - tigera-operator
+        - istio-system
