@@ -15,11 +15,11 @@ spec:
       labels:
         app: busybox
     spec:
+      serviceAccountName: cicd-deployer
       hostPID: false
       hostIPC: false
       hostNetwork: false
       containers:
-#      - image: busybox:1.28
       - image: busybox:1.28
         name: busybox
         command: [ "sh", "-c", "sleep 1h" ]
