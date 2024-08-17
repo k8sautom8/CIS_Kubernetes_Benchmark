@@ -13,6 +13,9 @@ metadata:
   name: "vap-cis-minimize-privileged-containers-policy"
 spec:
   failurePolicy: Fail
+  paramKind:
+    apiVersion: k8sautom8.com/v1
+    kind: ExcludeSystemNamespace
   matchConstraints:
     resourceRules:
       - apiGroups: [""]
@@ -29,6 +32,7 @@ spec:
         resources: ["jobs", "cronjobs"]
   validations:
     - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.containers) || \
                    (object.spec.containers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.privileged) || \
@@ -36,6 +40,7 @@ spec:
       message: "All Containers in pods must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
 
     - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.initContainers) || \
                    (object.spec.initContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.privileged) || \
@@ -43,6 +48,7 @@ spec:
       message: "All initContainers in pods must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
 
     - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.ephemeralContainers) || \
                    (object.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.privileged) || \
@@ -50,6 +56,7 @@ spec:
       message: "All ephemeralContainers in pods must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
 
     - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.template.spec.containers) || \
                    (object.spec.template.spec.containers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.privileged) || \
@@ -57,6 +64,7 @@ spec:
       message: "All Containers in Deployments, Replicasets, Daemonsets, Statefulsets must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
 
     - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.template.spec.initContainers) || \
                    (object.spec.template.spec.initContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.privileged) || \
@@ -64,6 +72,7 @@ spec:
       message: "All initContainers in Deployments, Replicasets, Daemonsets, Statefulsets must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
 
     - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.template.spec.ephemeralContainers) || \
                    (object.spec.template.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.privileged) || \
@@ -71,6 +80,7 @@ spec:
       message: "All ephemeralContainers in Deployments, Replicasets, Daemonsets, Statefulsets must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
 
     - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.jobTemplate.spec.template.spec.containers) || \
                    (object.spec.jobTemplate.spec.template.spec.containers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.privileged) || \
@@ -78,6 +88,7 @@ spec:
       message: "All Containers in CronJobs must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
 
     - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.jobTemplate.spec.template.spec.initContainers) || \
                    (object.spec.jobTemplate.spec.template.spec.initContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.privileged) || \
@@ -85,6 +96,7 @@ spec:
       message: "All initContainers in CronJobs must NOT set privileged to true. Please refer: https://hub.armosec.io/docs/c-0213"
 
     - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.jobTemplate.spec.template.spec.ephemeralContainers) || \
                    (object.spec.jobTemplate.spec.template.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.privileged) || \

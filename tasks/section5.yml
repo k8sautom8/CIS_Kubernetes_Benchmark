@@ -1,4 +1,33 @@
 ---
+- name: "5.0.0 | PRE-REQ | Installing custom CRD and Params for ValidatingAdmissionPolicy"
+  block:
+  - name: "5.0.0 | PRE-REQ | Check if apiserver is up"
+    ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
+    changed_when: false
+    register: apiserver_start_5_0_0
+    until: apiserver_start_5_0_0.stdout|length > 0
+    retries: 120
+    delay: 1
+  - name: "5.0.0 | PRE-REQ | Apply CRD for ValidatingAdmissionPolicy {{ vap_exclude_system_namespace_crd }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_exclude_system_namespace_crd) }}"
+    register: crd_5_0_0
+    changed_when: "'created' in crd_5_0_0.stdout"
+  - name: "5.0.0 | PRE-REQ | Apply Paramerters for ValidatingAdmissionPolicy {{ vap_cis_exclude_system_namespace_params }}"
+    ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
+    args:
+      stdin: "{{ lookup('file', vap_cis_exclude_system_namespace_params) }}"
+    register: params_5_0_0
+    changed_when: "'created' in params_5_0_0.stdout"
+  run_once: true
+  when: rule_5_0_0
+  tags:
+    - level1
+    - rule_5.0.0
+    - audit
+    - master
+
 - name: "SCORED | 5.1.1 | AUDIT | L1 | MASTER | Ensure that the cluster-admin role is only used where required"
   block:
   - name: "SCORED | 5.1.1 | AUDIT | L1 | MASTER | Check if apiserver is up"

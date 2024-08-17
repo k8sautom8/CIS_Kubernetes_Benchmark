@@ -11,6 +11,9 @@ metadata:
   name: "vap-cis-minimize-sharing-host-network-policy"
 spec:
   failurePolicy: Fail
+  paramKind:
+    apiVersion: k8sautom8.com/v1
+    kind: ExcludeSystemNamespace
   matchConstraints:
     resourceRules:
       - apiGroups: [""]
@@ -27,16 +30,19 @@ spec:
         resources: ["jobs", "cronjobs"]
   validations:
     - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !(has(object.spec.hostNetwork) && \
                    object.spec.hostNetwork == true)"
       message: "All pods must NOT set hostNetwork to true. Please refer: https://hub.armosec.io/docs/c-0216"
 
     - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !(has(object.spec.template.spec.hostNetwork) && \
                    object.spec.template.spec.hostNetwork == true)"
       message: "All containers must NOT set hostNetwork to true. Please refer: https://hub.armosec.io/docs/c-0216"
 
     - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !(has(object.spec.jobTemplate.spec.template.spec.hostNetwork) && 
                    object.spec.jobTemplate.spec.template.spec.hostNetwork == true)"
       message: "All jobs must NOT set hostNetwork to true. Please refer: https://hub.armosec.io/docs/c-0216"

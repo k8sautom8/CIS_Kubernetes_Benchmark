@@ -11,6 +11,9 @@ metadata:
   name: "vap-cis-minimize-sharing-host-ipc-namespace-policy"
 spec:
   failurePolicy: Fail
+  paramKind:
+    apiVersion: k8sautom8.com/v1
+    kind: ExcludeSystemNamespace
   matchConstraints:
     resourceRules:
       - apiGroups: [""]
@@ -27,16 +30,19 @@ spec:
         resources: ["jobs", "cronjobs"]
   validations:
     - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !(has(object.spec.hostIPC) && \
                    object.spec.hostIPC == true)"
       message: "All pods must NOT set hostIPC to true. Please refer: https://hub.armosec.io/docs/c-0215"
 
     - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !(has(object.spec.template.spec.hostIPC) && \
                    object.spec.template.spec.hostIPC == true)"
       message: "All containers must NOT set hostIPC to true. Please refer: https://hub.armosec.io/docs/c-0215"
 
     - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !(has(object.spec.jobTemplate.spec.template.spec.hostIPC) && \
                    object.spec.jobTemplate.spec.template.spec.hostIPC == true)"
       message: "All jobs must NOT set hostIPC to true. Please refer: https://hub.armosec.io/docs/c-0215"

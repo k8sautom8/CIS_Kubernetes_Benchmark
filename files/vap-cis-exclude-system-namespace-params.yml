@@ -1,0 +1,13 @@
+apiVersion: k8sautom8.com/v1
+kind: ExcludeSystemNamespace
+metadata:
+  name: exclude-system-namespace-list
+spec:
+  excludeSystemNamespaces:
+    - "kube-node-lease"
+    - "kube-public"
+    - "kube-system"
+    - "calico-apiserver"
+    - "calico-system"
+    - "tigera-operator"
+    - "istio-system"

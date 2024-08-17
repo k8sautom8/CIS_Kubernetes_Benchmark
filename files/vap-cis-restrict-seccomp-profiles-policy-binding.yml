@@ -15,16 +15,28 @@ metadata:
 spec:
   policyName: "vap-cis-restrict-seccomp-profiles-policy"
   validationActions: [Deny]
-  matchResources:
-    namespaceSelector:
-      matchExpressions:
-      - key: kubernetes.io/metadata.name
-        operator: NotIn
-        values:
-        - kube-node-lease
-        - kube-public
-        - kube-system
-        - calico-apiserver
-        - calico-system
-        - tigera-operator
-        - istio-system
+  paramRef:
+    name: exclude-system-namespace-list
+    parameterNotFoundAction: "Deny"
+  matchResources: {}
+
+### The namespace exclusion logic now moved into CRD, Parameter and embeded in Policy. This gives more flexibility on managing and maintaing common exclusions
+### You can still exclude additional app namespaces which are specific to the policy exclusion using following matchExpressions
+###
+# matchResources:
+#   namespaceSelector:
+#     matchExpressions:
+#     - key: kubernetes.io/metadata.name
+#       operator: NotIn
+#       values:
+#       - app-one-namespace
+#       - app-two-namespace
+###
+### OR using labels
+###
+# matchResources:
+#   namespaceSelector:
+#     matchExpressions:
+#       namsSpaceSelector:
+#         matchLabels:
+#           environment: prod

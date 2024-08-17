@@ -12,6 +12,9 @@ metadata:
   name: "vap-cis-minimize-addition-of-limited-capabilities-policy"
 spec:
   failurePolicy: Fail
+  paramKind:
+    apiVersion: k8sautom8.com/v1
+    kind: ExcludeSystemNamespace
   matchConstraints:
     resourceRules:
     - apiGroups: [""]
@@ -28,6 +31,7 @@ spec:
       resources: ["jobs", "cronjobs"]
   validations:
     - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.containers) || \
                    (object.spec.containers.all(container, !has(container.securityContext) || \
                    !has(container.securityContext.capabilities) || \
@@ -39,6 +43,7 @@ spec:
                 MKNOD, NET_BIND_SERVICE, SETFCAP, SETGID, SETPCAP, SETUID, SYS_CHROOT) are disallowed. Please refer: https://hub.armosec.io/docs/c-0200"
     
     - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.initContainers) || \
                    (object.spec.initContainers.all(container, !has(container.securityContext) || \
                    !has(container.securityContext.capabilities) || \
@@ -50,6 +55,7 @@ spec:
                 MKNOD, NET_BIND_SERVICE, SETFCAP, SETGID, SETPCAP, SETUID, SYS_CHROOT) are disallowed. Please refer: https://hub.armosec.io/docs/c-0200"
     
     - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.ephemeralContainers) || \
                    (object.spec.ephemeralContainers.all(container, !has(container.securityContext) || \
                    !has(container.securityContext.capabilities) || \
@@ -61,6 +67,7 @@ spec:
                 MKNOD, NET_BIND_SERVICE, SETFCAP, SETGID, SETPCAP, SETUID, SYS_CHROOT) are disallowed. Please refer: https://hub.armosec.io/docs/c-0200"
 
     - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.template.spec.containers) || \
                    (object.spec.template.spec.containers.all(container, !has(container.securityContext) || \
                    !has(container.securityContext.capabilities) || \
@@ -72,6 +79,7 @@ spec:
                 MKNOD, NET_BIND_SERVICE, SETFCAP, SETGID, SETPCAP, SETUID, SYS_CHROOT) are disallowed. Please refer: https://hub.armosec.io/docs/c-0200"
     
     - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.template.spec.initContainers) || \
                    (object.spec.template.spec.initContainers.all(container, !has(container.securityContext) || \
                    !has(container.securityContext.capabilities) || \
@@ -83,6 +91,7 @@ spec:
                 MKNOD, NET_BIND_SERVICE, SETFCAP, SETGID, SETPCAP, SETUID, SYS_CHROOT) are disallowed. Please refer: https://hub.armosec.io/docs/c-0200"
     
     - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.template.spec.ephemeralContainers) || \
                    (object.spec.template.spec.ephemeralContainers.all(container, !has(container.securityContext) || \
                    !has(container.securityContext.capabilities) || \
@@ -94,6 +103,7 @@ spec:
                 MKNOD, NET_BIND_SERVICE, SETFCAP, SETGID, SETPCAP, SETUID, SYS_CHROOT) are disallowed. Please refer: https://hub.armosec.io/docs/c-0200"
 
     - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.jobTemplate.spec.template.spec.containers) || \
                    (object.spec.jobTemplate.spec.template.spec.containers.all(container, !has(container.securityContext) || \
                    !has(container.securityContext.capabilities) || \
@@ -105,6 +115,7 @@ spec:
                 MKNOD, NET_BIND_SERVICE, SETFCAP, SETGID, SETPCAP, SETUID, SYS_CHROOT) are disallowed. Please refer: https://hub.armosec.io/docs/c-0200"
     
     - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.jobTemplate.spec.template.spec.initContainers) || \
                    (object.spec.jobTemplate.spec.template.spec.initContainers.all(container, !has(container.securityContext) || \
                    !has(container.securityContext.capabilities) || \
@@ -116,6 +127,7 @@ spec:
                 KILL, MKNOD, NET_BIND_SERVICE, SETFCAP, SETGID, SETPCAP, SETUID, SYS_CHROOT) are disallowed. Please refer: https://hub.armosec.io/docs/c-0200"
     
     - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.jobTemplate.spec.template.spec.ephemeralContainers) || \
                    (object.spec.jobTemplate.spec.template.spec.ephemeralContainers.all(container, !has(container.securityContext) || \
                    !has(container.securityContext.capabilities) || \

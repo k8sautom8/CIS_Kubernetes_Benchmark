@@ -156,6 +156,7 @@ rule_4_2_9: true   # PATCH | L2 | WORKER | Ensure that the --event-qps argument 
 # NOTE: Section 5 use ValidatingAdmissionPolicy which is apiVersion: admissionregistration.k8s.io/v1 in Kubernetes Version 1.30.0 and above. The ValidatingAdmissionPolicy is enabled by default in v1.30.0 and above
 # For lower Kubernetes version the feature will need to be enabled with feature-gates and is in alpha and beta release depending on the version of Kubernetes cluster you have
   #LEVEL 1 | MASTER
+rule_5_0_0: true  # PRE-REQ | Installing custom CRD and Params for ValidatingAdmissionPolicy
 rule_5_1_1: true  # AUDIT | L1 | MASTER | Ensure that the cluster-admin role is only used where required 
 rule_5_1_2: false  # AUDIT | L1 | MASTER | Minimize access to secrets
 rule_5_1_4: false  # AUDIT | L1 | MASTER | Minimize access to create pods
@@ -272,6 +273,8 @@ admission_control_eventratelimit_file: "admission-eventratelimit.yaml" # the fil
 
 # ValidatingAdmissionPolicy
 # NOTE: Section 5 requires Kubernetes version v1.30.0 and above
+vap_exclude_system_namespace_crd: "vap-exclude-system-namespace-crd.yml"
+vap_cis_exclude_system_namespace_params: "vap-cis-exclude-system-namespace-params.yml" # Please verify the namespaceExclusion
 vap_cis_enforce_runasnonroot_policy: "vap-cis-enforce-runasnonroot-policy.yml"
 vap_cis_enforce_runasnonroot_policy_binding: "vap-cis-enforce-runasnonroot-policy-binding.yml"
 vap_cis_minimize_addition_of_limited_capabilities_policy: "vap-cis-minimize-addition-of-limited-capabilities-policy.yml"

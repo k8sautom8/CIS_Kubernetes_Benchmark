@@ -14,6 +14,9 @@ metadata:
   name: "vap-cis-restrict-seccomp-profiles-policy"
 spec:
   failurePolicy: Fail
+  paramKind:
+    apiVersion: k8sautom8.com/v1
+    kind: ExcludeSystemNamespace
   matchConstraints:
     resourceRules:
       - apiGroups: ["apps"]
@@ -22,6 +25,7 @@ spec:
         resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
   validations:
     - expression: "!has(object.spec.template.spec.securityContext) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.template.spec.securityContext.seccompProfile) || \
                    !has(object.spec.template.spec.securityContext.seccompProfile.type) || \
                    object.spec.template.spec.securityContext.seccompProfile.type == 'RuntimeDefault' || \
@@ -30,6 +34,7 @@ spec:
                 set to `RuntimeDefault` or `Localhost` Please refer: https://hub.armosec.io/docs/c-0210"
     
     - expression: "object.spec.template.spec.containers.all(container, !has(container.securityContext) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(container.securityContext.seccompProfile) || \
                    !has(container.securityContext.seccompProfile.type) || \
                    container.securityContext.seccompProfile.type == 'RuntimeDefault' || \
@@ -38,6 +43,7 @@ spec:
                 set to `RuntimeDefault` or `Localhost` Please refer: https://hub.armosec.io/docs/c-0210"
 
     - expression: "!has(object.spec.template.spec.initContainers) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    object.spec.template.spec.initContainers.all(container, !has(container.securityContext) || \
                    !has(container.securityContext.seccompProfile) || \
                    !has(container.securityContext.seccompProfile.type) || \
@@ -47,6 +53,7 @@ spec:
                 set to `RuntimeDefault` or `Localhost` Please refer: https://hub.armosec.io/docs/c-0210"
 
     - expression: "!has(object.spec.template.spec.ephemeralContainers) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    object.spec.template.spec.ephemeralContainers.all(container, !has(container.securityContext) || \
                    !has(container.securityContext.seccompProfile) || \
                    !has(container.securityContext.seccompProfile.type) || \

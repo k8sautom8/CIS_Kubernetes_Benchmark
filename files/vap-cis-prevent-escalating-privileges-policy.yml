@@ -13,6 +13,9 @@ metadata:
   name: "vap-cis-prevent-escalating-privileges-policy"
 spec:
   failurePolicy: Fail
+  paramKind:
+    apiVersion: k8sautom8.com/v1
+    kind: ExcludeSystemNamespace
   matchConstraints:
     resourceRules:
       - apiGroups: [""]
@@ -29,6 +32,7 @@ spec:
         resources: ["jobs", "cronjobs"]
   validations:
     - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.containers) || \
                    (object.spec.containers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.allowPrivilegeEscalation) || \
@@ -37,6 +41,7 @@ spec:
                 Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
 
     - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.initContainers) || \
                    (object.spec.initContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.allowPrivilegeEscalation) || \
@@ -45,6 +50,7 @@ spec:
                 Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
 
     - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.ephemeralContainers) || \
                    (object.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.allowPrivilegeEscalation) || \
@@ -53,6 +59,7 @@ spec:
                 Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
 
     - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.template.spec.containers) || \
                    (object.spec.template.spec.containers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.allowPrivilegeEscalation) || \
@@ -61,6 +68,7 @@ spec:
                 Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
 
     - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.template.spec.initContainers) || \
                    (object.spec.template.spec.initContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.allowPrivilegeEscalation) || \
@@ -69,6 +77,7 @@ spec:
                 Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
 
     - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.template.spec.ephemeralContainers) || \
                    (object.spec.template.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.allowPrivilegeEscalation) || \
@@ -77,6 +86,7 @@ spec:
                 Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
 
     - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.jobTemplate.spec.template.spec.containers) || \
                    (object.spec.jobTemplate.spec.template.spec.containers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.allowPrivilegeEscalation) || \
@@ -85,6 +95,7 @@ spec:
                 Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
 
     - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.jobTemplate.spec.template.spec.initContainers) || \
                    (object.spec.jobTemplate.spec.template.spec.initContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.allowPrivilegeEscalation) || \
@@ -93,6 +104,7 @@ spec:
                 Please refer: https://hub.datree.io/built-in-rules/prevent-escalating-privileges"
 
     - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
                    !has(object.spec.jobTemplate.spec.template.spec.ephemeralContainers) || \
                    (object.spec.jobTemplate.spec.template.spec.ephemeralContainers.all(c, !has(c.securityContext) || \
                    !has(c.securityContext.allowPrivilegeEscalation) || \
