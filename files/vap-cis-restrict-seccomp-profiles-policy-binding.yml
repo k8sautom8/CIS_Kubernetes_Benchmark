@@ -16,7 +16,7 @@ spec:
   policyName: "vap-cis-restrict-seccomp-profiles-policy"
   validationActions: [Deny]
   paramRef:
-    name: exclude-system-namespace-list
+    name: validation-parameters
     parameterNotFoundAction: "Deny"
   matchResources: {}
 

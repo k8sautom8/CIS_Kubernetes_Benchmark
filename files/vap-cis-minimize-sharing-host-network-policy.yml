@@ -13,7 +13,7 @@ spec:
   failurePolicy: Fail
   paramKind:
     apiVersion: k8sautom8.com/v1
-    kind: ExcludeSystemNamespace
+    kind: ValidationParameters
   matchConstraints:
     resourceRules:
       - apiGroups: [""]

@@ -15,7 +15,7 @@ spec:
   policyName: "vap-cis-minimize-privileged-containers-policy"
   validationActions: [Deny]
   paramRef:
-    name: exclude-system-namespace-list
+    name: validation-parameters
     parameterNotFoundAction: "Deny"
   matchResources: {}
 

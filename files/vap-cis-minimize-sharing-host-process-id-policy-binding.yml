@@ -14,7 +14,7 @@ spec:
   policyName: "vap-cis-minimize-sharing-host-process-id-policy"
   validationActions: [Deny]
   paramRef:
-    name: exclude-system-namespace-list
+    name: validation-parameters
     parameterNotFoundAction: "Deny"
   matchResources: {}
 

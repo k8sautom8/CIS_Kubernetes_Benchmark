@@ -1,7 +1,7 @@
 apiVersion: k8sautom8.com/v1
-kind: ExcludeSystemNamespace
+kind: ValidationParameters
 metadata:
-  name: exclude-system-namespace-list
+  name: validation-parameters
 spec:
   excludeSystemNamespaces:
     - "kube-node-lease"
@@ -11,3 +11,7 @@ spec:
     - "calico-system"
     - "tigera-operator"
     - "istio-system"
+  allowedRegistries:
+    - "registry.k8s.io"
+    - "docker.io"
+  maxReplicas: 5
