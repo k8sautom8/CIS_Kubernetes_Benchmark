@@ -8,16 +8,16 @@
     until: apiserver_start_5_0_0.stdout|length > 0
     retries: 120
     delay: 1
-  - name: "5.0.0 | PRE-REQ | Apply CRD for ValidatingAdmissionPolicy {{ vap_exclude_system_namespace_crd }}"
+  - name: "5.0.0 | PRE-REQ | Apply CRD for ValidatingAdmissionPolicy {{ vap_cis_validation_parameters_crd }}"
     ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
     args:
-      stdin: "{{ lookup('file', vap_exclude_system_namespace_crd) }}"
+      stdin: "{{ lookup('file', vap_cis_validation_parameters_crd) }}"
     register: crd_5_0_0
     changed_when: "'created' in crd_5_0_0.stdout"
-  - name: "5.0.0 | PRE-REQ | Apply Paramerters for ValidatingAdmissionPolicy {{ vap_cis_exclude_system_namespace_params }}"
+  - name: "5.0.0 | PRE-REQ | Apply Paramerters for ValidatingAdmissionPolicy {{ vap_cis_validation_parameters }}"
     ansible.builtin.command: kubectl --kubeconfig={{ kubeconfig_path }} apply -f -
     args:
-      stdin: "{{ lookup('file', vap_cis_exclude_system_namespace_params) }}"
+      stdin: "{{ lookup('file', vap_cis_validation_parameters) }}"
     register: params_5_0_0
     changed_when: "'created' in params_5_0_0.stdout"
   run_once: true

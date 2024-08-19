@@ -273,8 +273,8 @@ admission_control_eventratelimit_file: "admission-eventratelimit.yaml" # the fil
 
 # ValidatingAdmissionPolicy
 # NOTE: Section 5 requires Kubernetes version v1.30.0 and above
-vap_exclude_system_namespace_crd: "vap-exclude-system-namespace-crd.yml"
-vap_cis_exclude_system_namespace_params: "vap-cis-exclude-system-namespace-params.yml" # Please verify the namespaceExclusion
+vap_cis_validation_parameters_crd: "vap-cis-validation-parameters-crd.yml"
+vap_cis_validation_parameters: "vap-cis-validation-parameters.yml" # Please verify the excludeSystemNamespaces, allowedRegistries, maxReplicas
 vap_cis_enforce_runasnonroot_policy: "vap-cis-enforce-runasnonroot-policy.yml"
 vap_cis_enforce_runasnonroot_policy_binding: "vap-cis-enforce-runasnonroot-policy-binding.yml"
 vap_cis_minimize_addition_of_limited_capabilities_policy: "vap-cis-minimize-addition-of-limited-capabilities-policy.yml"
