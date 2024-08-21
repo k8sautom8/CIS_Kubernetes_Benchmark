@@ -1,7 +1,9 @@
 # CIS_Kubernetes_Benchmark
 
 Baseline Ansible Role for Kubernetes CIS Benchmark v{release_version}
+
 { release_version } : Corresopnds to the CIS policy document version 
+
 Example,
   Code Release: v1.0.0, Corresponds to CIS Kubernetes V1.24 Benchmark, v1.0.0 - 09-21-2022
 
