@@ -1,14 +1,16 @@
-# Kubernetes1.24-CIS
-CIS Baseline Ansible Role for Kubernetes CIS Benchmark v1.24.
-This role is designed according to the CIS Kubernetes Benchmark v1.24 policies, available at: CIS Security - Kubernetes Benchmark.
-It includes an Ansible playbook with a role to remediate a Kubernetes cluster based on the CIS_Kubernetes_Benchmark_v1.24 defined on https://www.cisecurity.org/benchmark/kubernetes
+# CIS_Kubernetes_Benchmark
+
+Baseline Ansible Role for Kubernetes CIS Benchmark v{release_version}
+{ release_version } : Corresopnds to the CIS policy document version 
+Example,
+  Code Release: v1.0.0, Corresponds to CIS Kubernetes V1.24 Benchmark, v1.0.0 - 09-21-2022
+
+This role is designed according to the CIS Kubernetes Benchmark v{release_version} policies, available at: CIS Security - Kubernetes Benchmark.
+It includes an Ansible playbook with a role to remediate a Kubernetes cluster based on the CIS_Kubernetes_Benchmark_v{release_version} defined on https://www.cisecurity.org/benchmark/kubernetes
 
 For reference, this is an updated version of the previous project: Kubernetes1.6.1-CIS. https://github.com/ansible-lockdown/Kubernetes1.6.1-CIS
 
 In the new version, I've attempted to automate all advanced CIS policies, which were not included in the previous version.
-
-Update: 13 Aug 2024
-Release note: Policy remediation in Section 5 is now available for (K8S V1.30.0 and above) using ValidatingAdmissionPolicy. There is no point in using deprecated feature PSP
 
 Requirements
 ------------
@@ -33,6 +35,12 @@ How to use?
         worker-node02.example.local:
         worker-node03.example.local:
     ```
+
+2. Edit files/vap-cis-validation-parameters.yml
+   modify per your requirements,
+     excludeSystemNamespaces
+     allowedRegistries
+     maxReplicas
 
 3. Verify the defaults/main.yml and make sure all files required by playbook does exists.
    Play is executed in the 5 CIS sections, enable/disable them at section level

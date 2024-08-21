@@ -1,7 +1,7 @@
 ---
 galaxy_info:
     author: "New version by Abhijit Jadhav, based on original version by Ryan Speelman"
-    description: "Ansible playbook with a role to remediate a Kubernetes cluster based on the CIS_Kubernetes_Benchmark_v1.24"
+    description: "Ansible playbook with a role to remediate a Kubernetes cluster based on the CIS_Kubernetes_Benchmark_{release_version}"
     company: "NA"
     license: MIT
     min_ansible_version: 2.9
