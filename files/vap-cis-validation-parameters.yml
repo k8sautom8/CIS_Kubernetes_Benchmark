@@ -14,4 +14,4 @@ spec:
   allowedRegistries:
     - "registry.k8s.io"
     - "docker.io"
-  maxReplicas: 5
+  maxReplicas: 3
