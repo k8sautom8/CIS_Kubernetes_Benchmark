@@ -754,9 +754,9 @@
 ########################################################
 #region --enable-admission-plugins
 ########################################################
-- name: "SCORED | 1.2.9-1.2.15 | AUDIT | L1 | MASTER | Ensure that --enable-admission-plugins argument is set"
+- name: "SCORED | 1.2.9-1.2.14 | AUDIT | L1 | MASTER | Ensure that --enable-admission-plugins argument is set"
   block:
-  - name: "SCORED | 1.2.9-1.2.15 | AUDIT | L1 | MASTER | Test if --enable-admission-plugins argument is set"
+  - name: "SCORED | 1.2.9-1.2.14 | AUDIT | L1 | MASTER | Test if --enable-admission-plugins argument is set"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       regexp: '\s- --enable-admission-plugins=.*'
@@ -770,15 +770,14 @@
       success_msg: "'--enable-admission-plugins' argument is set"
       fail_msg: "'--enable-admission-plugins' argument is not set"
   when:
-    - rule_1_2_9 or rule_1_2_10 or rule_1_2_12 or rule_1_2_13 or rule_1_2_15
+    - rule_1_2_9 or rule_1_2_10 or rule_1_2_11 or rule_1_2_14
   tags:
     - level1
     - audit
     - rule_1.2.9
+    - rule_1.2.10
     - rule_1.2.11
-    - rule_1.2.12
-    - rule_1.2.13
-    - rule_1.2.15
+    - rule_1.2.14
     - master
 
 #Caution!: 1.2.9 breaks is the cluster and there is no rollback so other than full restet and reinstall k8s cluster
@@ -898,51 +897,13 @@
     - rule_1.2.11
     - master
 
-- name: "SCORED | 1.2.12 | AUDIT | L1 | MASTER | Ensure that the admission control plugin SecurityContextDeny is set if PodSecurityPolicy is not used"
-  block:
-  - name: "SCORED | 1.2.12 | AUDIT | L1 | MASTER | Test if --enable-admission-plugins argument includes PodSecurityPolicy"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      regexp: '\s- --enable-admission-plugins=.*PodSecurityPolicy.*'
-      state: absent
-    check_mode: yes
-    changed_when: false
-    register: enable_admission_plugins_contains_podsecuritypolicy
-  - name: "SCORED | 1.2.12 | AUDIT | L1 | MASTER | Test if --enable-admission-plugins argument includes SecurityContextDeny"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      regexp: '\s- --enable-admission-plugins=.*SecurityContextDeny.*'
-      state: absent
-    check_mode: yes
-    changed_when: false
-    register: enable_admission_plugins_contains_securitycontextdeny
-  - name: "SCORED | 1.2.12 | AUDIT | L1 | MASTER | Ensure that the admission control plugin SecurityContextDeny is set"
-    ansible.builtin.lineinfile:
-      dest: "{{ api_server_pod_specification_file }}"
-      #backup: true
-      backrefs: true
-      state: present
-      regexp: '^(\s+- --enable-admission-plugins=(?!.*PodSecurityPolicy).*)$'
-      line: '\1,PodSecurityPolicy'
-    when: not enable_admission_plugins_contains_podsecuritypolicy.found
-  when:
-    - rule_1_2_12
-    - enable_admission_plugins.found
-  tags:
-    - level1
-    - perms
-    - audit
-    - rule_1.2.12
-    - master
-    - followup
-
 
 ########################################################
 #region --disable-admission-plugins
 ########################################################
-- name: "SCORED | 1.2.13-14 | AUDIT | L1 | MASTER | Discover if --disable-admission-plugins argument is set"
+- name: "SCORED | 1.2.12-13 | AUDIT | L1 | MASTER | Discover if --disable-admission-plugins argument is set"
   block:
-  - name: "SCORED | 1.2.13-14 | PATCH | L1 | MASTER | Test that --disable-admission-plugins argument is set"
+  - name: "SCORED | 1.2.12-13 | PATCH | L1 | MASTER | Test that --disable-admission-plugins argument is set"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       regexp: '^(\s+- --disable-admission-plugins=.*)$'
@@ -951,22 +912,22 @@
     changed_when: false
     register: disable_admission_plugins
   when:
-    - rule_1_2_13 or rule_1_2_14
+    - rule_1_2_12 or rule_1_2_13
   tags:
     - level1
     - audit
+    - rule_1.2.12
     - rule_1.2.13
-    - rule_1.2.14
     - master
 
-- name: "SCORED | 1.2.13 | AUDIT | L1 | MASTER | Ensure that the admission control plugin ServiceAccount is set"
+- name: "SCORED | 1.2.12 | AUDIT | L1 | MASTER | Ensure that the admission control plugin ServiceAccount is set"
   block:
-  - name: "SCORED | 1.2.13 | AUDIT | L1 | MASTER | Assert that when --disable-admission-plugins argument is not set, therefore it does not contain 'ServiceAccount'"
+  - name: "SCORED | 1.2.12 | AUDIT | L1 | MASTER | Assert that when --disable-admission-plugins argument is not set, therefore it does not contain 'ServiceAccount'"
     assert:
       that: not disable_admission_plugins.found
       success_msg: "'--disable-admission-plugins' argument is not set, therefore it does not contain 'ServiceAccount'"
     when: not disable_admission_plugins.found
-  - name: "SCORED | 1.2.13 | AUDIT | L1 | MASTER | Test if --disable-admission-plugins argument contains 'ServiceAccount'"
+  - name: "SCORED | 1.2.12 | AUDIT | L1 | MASTER | Test if --disable-admission-plugins argument contains 'ServiceAccount'"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       regexp: '^\s+- --disable-admission-plugins=.*ServiceAccount.*$'
@@ -975,11 +936,42 @@
     changed_when: false
     register: disable_admission_plugins_contains_serviceaccount
     when: disable_admission_plugins.found
-  - name: "SCORED | 1.2.13 | AUDIT | L1 | MASTER | Assert that --disable-admission-plugins argument does not contain 'ServiceAccount'"
+  - name: "SCORED | 1.2.12 | AUDIT | L1 | MASTER | Assert that --disable-admission-plugins argument does not contain 'ServiceAccount'"
     assert:
       that: not disable_admission_plugins_contains_serviceaccount.found
       success_msg: "'--disable-admission-plugins' argument does not contain 'ServiceAccount'"
       fail_msg: "'--disable-admission-plugins' argument contains 'ServiceAccount'"
+    when: disable_admission_plugins.found
+  when:
+    - rule_1_2_12
+  tags:
+    - level1
+    - perms
+    - audit
+    - rule_1.2.12
+    - master
+
+- name: "SCORED | 1.2.13 | AUDIT | L1 | MASTER | Ensure that the admission control plugin NamespaceLifecycle is set"
+  block:
+  - name: "SCORED | 1.2.13 | AUDIT | L1 | MASTER | Assert that when --disable-admission-plugins argument is not set, therefore it does not contain 'NamespaceLifecycle'"
+    assert:
+      that: not disable_admission_plugins.found
+      success_msg: "'--disable-admission-plugins' argument is not set, therefore it does not contain 'NamespaceLifecycle'"
+    when: not disable_admission_plugins.found
+  - name: "SCORED | 1.2.13 | AUDIT | L1 | MASTER | Test if --disable-admission-plugins argument contains 'NamespaceLifecycle'"
+    ansible.builtin.lineinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      regexp: '^\s+- --disable-admission-plugins=.*NamespaceLifecycle.*$'
+      state: absent
+    check_mode: yes
+    changed_when: false
+    register: disable_admission_plugins_contains_namespacelifecycle
+    when: disable_admission_plugins.found
+  - name: "SCORED | 1.2.13 | AUDIT | L1 | MASTER | Assert that --disable-admission-plugins argument does not contain 'NamespaceLifecycle'"
+    assert:
+      that: not disable_admission_plugins_contains_namespacelifecycle.found
+      success_msg: "'--disable-admission-plugins' argument does not contain 'NamespaceLifecycle'"
+      fail_msg: "'--disable-admission-plugins' argument contains 'NamespaceLifecycle'"
     when: disable_admission_plugins.found
   when:
     - rule_1_2_13
@@ -989,44 +981,13 @@
     - audit
     - rule_1.2.13
     - master
-
-- name: "SCORED | 1.2.14 | AUDIT | L1 | MASTER | Ensure that the admission control plugin NamespaceLifecycle is set"
-  block:
-  - name: "SCORED | 1.2.14 | AUDIT | L1 | MASTER | Assert that when --disable-admission-plugins argument is not set, therefore it does not contain 'NamespaceLifecycle'"
-    assert:
-      that: not disable_admission_plugins.found
-      success_msg: "'--disable-admission-plugins' argument is not set, therefore it does not contain 'NamespaceLifecycle'"
-    when: not disable_admission_plugins.found
-  - name: "SCORED | 1.2.14 | AUDIT | L1 | MASTER | Test if --disable-admission-plugins argument contains 'NamespaceLifecycle'"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      regexp: '^\s+- --disable-admission-plugins=.*NamespaceLifecycle.*$'
-      state: absent
-    check_mode: yes
-    changed_when: false
-    register: disable_admission_plugins_contains_namespacelifecycle
-    when: disable_admission_plugins.found
-  - name: "SCORED | 1.2.14 | AUDIT | L1 | MASTER | Assert that --disable-admission-plugins argument does not contain 'NamespaceLifecycle'"
-    assert:
-      that: not disable_admission_plugins_contains_namespacelifecycle.found
-      success_msg: "'--disable-admission-plugins' argument does not contain 'NamespaceLifecycle'"
-      fail_msg: "'--disable-admission-plugins' argument contains 'NamespaceLifecycle'"
-    when: disable_admission_plugins.found
-  when:
-    - rule_1_2_14
-  tags:
-    - level1
-    - perms
-    - audit
-    - rule_1.2.14
-    - master
 ########################################################
 #endregion --disable-admission-plugins
 ########################################################
 
-- name: "SCORED | 1.2.15 | AUDIT | L1 | MASTER | Ensure that the admission control plugin NodeRestriction is set"
+- name: "SCORED | 1.2.14 | AUDIT | L1 | MASTER | Ensure that the admission control plugin NodeRestriction is set"
   block:
-  - name: "SCORED | 1.2.15 | AUDIT | L1 | MASTER | Test if --enable-admission-plugins argument includes NodeRestriction"
+  - name: "SCORED | 1.2.14 | AUDIT | L1 | MASTER | Test if --enable-admission-plugins argument includes NodeRestriction"
     ansible.builtin.lineinfile:
       dest: "{{ api_server_pod_specification_file }}"
       #backup: true
@@ -1035,58 +996,18 @@
       regexp: '^(\s+- --enable-admission-plugins=(?!.*NodeRestriction).*)$'
       line: '\1,NodeRestriction'
   when:
-    - rule_1_2_15
+    - rule_1_2_14
     - enable_admission_plugins.found
   tags:
     - level1
     - perms
     - audit
-    - rule_1.2.15
-    - master
-########################################################
-#endregion --enable-admission-plugins
-########################################################
-
-- name: "SCORED | 1.2.16 | PATCH | L1 | MASTER | Ensure that the --secure-port argument is not set to {{ secure_port }}"
-  block:
-  - name: "SCORED | 1.2.16 | PATCH | L1 | MASTER | If argument '--secure-port' does not exist, add it"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      state: present
-      regexp: '^(\s+- --secure-port=).*$'
-      line: '    - --secure-port={{ secure_port }}'
-      insertafter: '^\s+- kube-apiserver$'
-      #backup: yes
-  - name: "SCORED | 1.2.16 | PATCH | L1 | MASTER | Ensure that the --secure-port argument is not set to {{ secure_port }}"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      state: present
-      regexp: '^(\s+- --secure-port=)(?!{{ secure_port }}).*$'
-      line: '    - --secure-port={{ secure_port }}'
-      #Issues with these variations:
-      #line: '\1{{ secure_port }}'
-      #line: '\{1}8443'
-      #line: '\1`8443'
-      #line: '\1\84430'
-      #line: '\1{8443}'
-      #line: '${1}1234'
-      #line: '\1(?P=car)'
-      insertafter: '^\s+- kube-apiserver$'
-      backrefs: true
-      #backup: yes
-  when:
-    - rule_1_2_16
-  tags:
-    - level1
-    - perms
-    - patch
-    - rule_1.2.16
+    - rule_1.2.14
     - master
 
-
-- name: "SCORED | 1.2.17 | PATCH | L1 | MASTER | Ensure that the --profiling argument is set to false"
+- name: "SCORED | 1.2.15 | PATCH | L1 | MASTER | Ensure that the --profiling argument is set to false"
   block:
-  - name: "SCORED | 1.2.17 | PATCH | L1 | MASTER | If argument '--profiling does not exist', add it"
+  - name: "SCORED | 1.2.15 | PATCH | L1 | MASTER | If argument '--profiling does not exist', add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
@@ -1094,7 +1015,7 @@
       line: '    - --profiling=false'
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
-  - name: "SCORED | 1.2.17 | PATCH | L1 | MASTER | Ensure that the --profiling argument is set to false"
+  - name: "SCORED | 1.2.15 | PATCH | L1 | MASTER | Ensure that the --profiling argument is set to false"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
@@ -1104,17 +1025,17 @@
       backrefs: true
       #backup: yes
   when:
-    - rule_1_2_17
+    - rule_1_2_15
   tags:
     - level1
     - perms
     - patch
-    - rule_1.2.17
+    - rule_1.2.15
     - master
 
-- name: "SCORED | 1.2.18 | PATCH | L1 | MASTER | Ensure that the --audit-log-path argument is set"
+- name: "SCORED | 1.2.16 | PATCH | L1 | MASTER | Ensure that the --audit-log-path argument is set"
   block:
-  - name: "SCORED | 1.2.18 | PATCH | L1 | MASTER | If argument '--audit-log-path' does not exist, add it"
+  - name: "SCORED | 1.2.16 | PATCH | L1 | MASTER | If argument '--audit-log-path' does not exist, add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
@@ -1122,7 +1043,7 @@
       line: '    - --audit-log-path={{ audit_log_path }}'
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
-  - name: "SCORED | 1.2.18 | PATCH | L1 | MASTER | Ensure that the --audit-log-path argument is set"
+  - name: "SCORED | 1.2.16 | PATCH | L1 | MASTER | Ensure that the --audit-log-path argument is set"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
@@ -1131,7 +1052,7 @@
       insertafter: '^\s+- kube-apiserver$'
       backrefs: true
       #backup: yes
-  - name: "SCORED | 1.2.18 | PATCH | L1 | MASTER | Ensure volume for audit log {{ audit_log_directory }} exists"
+  - name: "SCORED | 1.2.16 | PATCH | L1 | MASTER | Ensure volume for audit log {{ audit_log_directory }} exists"
     ansible.builtin.blockinfile:
       path: "{{ api_server_pod_specification_file }}"
       insertafter: '^  volumes:$'
@@ -1141,7 +1062,7 @@
               type: DirectoryOrCreate
             name: audit-log
       marker: "# {mark} Ensure volume for audit log exists"
-  - name: "SCORED | 1.2.18 | PATCH | L1 | MASTER | Ensure volume mount for audit log {{ audit_log_directory }} exists"
+  - name: "SCORED | 1.2.16 | PATCH | L1 | MASTER | Ensure volume mount for audit log {{ audit_log_directory }} exists"
     ansible.builtin.blockinfile:
       path: "{{ api_server_pod_specification_file }}"
       insertafter: '^    volumeMounts:$'
@@ -1151,17 +1072,17 @@
               readOnly: false
       marker: "# {mark} Ensure volume mount for audit log exists"
   when:
-    - rule_1_2_18
+    - rule_1_2_16
   tags:
     - level1
     - perms
     - patch
-    - rule_1.2.18
+    - rule_1.2.16
     - master
 
-- name: "SCORED | 1.2.19 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxage argument is set to 30 or as appropriate"
+- name: "SCORED | 1.2.17 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxage argument is set to 30 or as appropriate"
   block:
-  - name: "SCORED | 1.2.19 | PATCH | L1 | MASTER | If argument '--audit-log-maxage' does not exist, add it"
+  - name: "SCORED | 1.2.17 | PATCH | L1 | MASTER | If argument '--audit-log-maxage' does not exist, add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
@@ -1169,7 +1090,7 @@
       line: '    - --audit-log-maxage={{ audit_log_maxage }}'
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
-  - name: "SCORED | 1.2.19 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxage argument is set to 30 or as appropriate"
+  - name: "SCORED | 1.2.17 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxage argument is set to 30 or as appropriate"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
@@ -1179,18 +1100,18 @@
       backrefs: true
       #backup: yes
   when:
-    - rule_1_2_19
+    - rule_1_2_17
   tags:
     - level1
     - perms
     - patch
-    - rule_1.2.19 
+    - rule_1.2.17 
     - master
 
 
-- name: "SCORED | 1.2.20 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxbackup argument is set to 10 or as appropriate"
+- name: "SCORED | 1.2.18 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxbackup argument is set to 10 or as appropriate"
   block:
-  - name: "SCORED | 1.2.20 | PATCH | L1 | MASTER | If argument '--audit-log-maxbackup' does not exist, add it"
+  - name: "SCORED | 1.2.18 | PATCH | L1 | MASTER | If argument '--audit-log-maxbackup' does not exist, add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
@@ -1198,12 +1119,68 @@
       line: '    - --audit-log-maxbackup={{ audit_log_maxbackup }}'
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
-  - name: "SCORED | 1.2.20 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxbackup argument is set to 10 or as appropriate"
+  - name: "SCORED | 1.2.18 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxbackup argument is set to 10 or as appropriate"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
       regexp: '^(\s+- --audit-log-maxbackup=)(?!{{ audit_log_maxbackup }}).*$'
       line: '\1{{ audit_log_maxbackup }}'
+      insertafter: '^\s+- kube-apiserver$'
+      backrefs: true
+      #backup: yes
+  when:
+    - rule_1_2_18
+  tags:
+    - level1
+    - perms
+    - patch
+    - rule_1.2.18
+    - master
+
+- name: "SCORED | 1.2.19 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxsize argument is set to 100 or as appropriate"
+  block:
+  - name: "SCORED | 1.2.19 | PATCH | L1 | MASTER | If argument '--audit-log-maxsize' does not exist, add it"
+    ansible.builtin.lineinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      state: present
+      regexp: '^(\s+- --audit-log-maxsize=).*$'
+      line: '    - --audit-log-maxsize={{ audit_log_maxsize }}'
+      insertafter: '^\s+- kube-apiserver$'
+      #backup: yes
+  - name: "SCORED | 1.2.19 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxsize argument is set to 100 or as appropriate"
+    ansible.builtin.lineinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      state: present
+      regexp: '^(\s+- --audit-log-maxsize=)(?!{{ audit_log_maxsize }}).*$'
+      line: '\1{{ audit_log_maxsize }}'
+      insertafter: '^\s+- kube-apiserver$'
+      backrefs: true
+      #backup: yes
+  when:
+    - rule_1_2_19
+  tags:
+    - level1
+    - perms
+    - patch
+    - rule_1.2.19
+    - master
+
+- name: "SCORED | 1.2.20 | PATCH | L1 | MASTER | Ensure that the --request-timeout argument is set as appropriate"
+  block:
+  - name: "SCORED | 1.2.20 | PATCH | L1 | MASTER | If argument '--request-timeout' does not exist, add it"
+    ansible.builtin.lineinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      state: present
+      regexp: '^(\s+- --request-timeout=).*$'
+      line: '    - --request-timeout={{ request_timeout }}'
+      insertafter: '^\s+- kube-apiserver$'
+      #backup: yes
+  - name: "SCORED | 1.2.20 | PATCH | L1 | MASTER | Ensure that the --request-timeout argument is set as appropriate"
+    ansible.builtin.lineinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      state: present
+      regexp: '^(\s+- --request-timeout=)(?!{{ request_timeout }}).*$'
+      line: '\1{{ request_timeout }}'
       insertafter: '^\s+- kube-apiserver$'
       backrefs: true
       #backup: yes
@@ -1216,22 +1193,23 @@
     - rule_1.2.20
     - master
 
-- name: "SCORED | 1.2.21 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxsize argument is set to 100 or as appropriate"
+
+- name: "SCORED | 1.2.21 | PATCH | L1 | MASTER | Ensure that the --service-account-lookup argument is set to true"
   block:
-  - name: "SCORED | 1.2.21 | PATCH | L1 | MASTER | If argument '--audit-log-maxsize' does not exist, add it"
+  - name: "SCORED | 1.2.21 | PATCH | L1 | MASTER | If argument '--service-account-lookup' does not exist, add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --audit-log-maxsize=).*$'
-      line: '    - --audit-log-maxsize={{ audit_log_maxsize }}'
+      regexp: '^(\s+- --service-account-lookup=).*$'
+      line: '    - --service-account-lookup=true'
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
-  - name: "SCORED | 1.2.21 | PATCH | L1 | MASTER | Ensure that the --audit-log-maxsize argument is set to 100 or as appropriate"
+  - name: "SCORED | 1.2.21 | PATCH | L1 | MASTER | Ensure that the --service-account-lookup argument is set to true"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --audit-log-maxsize=)(?!{{ audit_log_maxsize }}).*$'
-      line: '\1{{ audit_log_maxsize }}'
+      regexp: '^(\s+- --service-account-lookup=)(?!true).*$'
+      line: '\1true'
       insertafter: '^\s+- kube-apiserver$'
       backrefs: true
       #backup: yes
@@ -1244,22 +1222,23 @@
     - rule_1.2.21
     - master
 
-- name: "SCORED | 1.2.22 | PATCH | L1 | MASTER | Ensure that the --request-timeout argument is set as appropriate"
+
+- name: "SCORED | 1.2.22 | PATCH | L1 | MASTER | Ensure that the --service-account-key-file argument is set as appropriate"
   block:
-  - name: "SCORED | 1.2.22 | PATCH | L1 | MASTER | If argument '--request-timeout' does not exist, add it"
+  - name: "SCORED | 1.2.22 | PATCH | L1 | MASTER | If argument '--service-account-key-file' does not exist, add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --request-timeout=).*$'
-      line: '    - --request-timeout={{ request_timeout }}'
+      regexp: '^(\s+- --service-account-key-file=).*$'
+      line: '    - --service-account-key-file={{ service_account_key_file }}'
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
-  - name: "SCORED | 1.2.22 | PATCH | L1 | MASTER | Ensure that the --request-timeout argument is set as appropriate"
+  - name: "SCORED | 1.2.22 | PATCH | L1 | MASTER | Ensure that the --service-account-key-file argument is set to true"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --request-timeout=)(?!{{ request_timeout }}).*$'
-      line: '\1{{ request_timeout }}'
+      regexp: '^(\s+- --service-account-key-file=)(?!{{ service_account_key_file }}).*$'
+      line: '\1{{ service_account_key_file }}'
       insertafter: '^\s+- kube-apiserver$'
       backrefs: true
       #backup: yes
@@ -1272,23 +1251,39 @@
     - rule_1.2.22
     - master
 
-
-- name: "SCORED | 1.2.23 | PATCH | L1 | MASTER | Ensure that the --service-account-lookup argument is set to true"
+- name: "SCORED | 1.2.23 | PATCH | L1 | MASTER | Ensure that the --etcd-certfile and --etcd-keyfile arguments are set as appropriate"
   block:
-  - name: "SCORED | 1.2.23 | PATCH | L1 | MASTER | If argument '--service-account-lookup' does not exist, add it"
+  - name: "SCORED | 1.2.23 | PATCH | L1 | MASTER | If argument '--etcd-certfile' does not exist, add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --service-account-lookup=).*$'
-      line: '    - --service-account-lookup=true'
+      regexp: '^(\s+- --etcd-certfile=).*$'
+      line: '    - --etcd-certfile={{ etcd_certfile }}'
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
-  - name: "SCORED | 1.2.23 | PATCH | L1 | MASTER | Ensure that the --service-account-lookup argument is set to true"
+  - name: "SCORED | 1.2.23 | PATCH | L1 | MASTER | Ensure that the --etcd-certfile arguments is set as appropriate"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --service-account-lookup=)(?!true).*$'
-      line: '\1true'
+      regexp: '^(\s+- --etcd-certfile=)(?!{{ etcd_certfile }}).*$'
+      line: '\1{{ etcd_certfile }}'
+      insertafter: '^\s+- kube-apiserver$'
+      backrefs: true
+      #backup: yes
+  - name: "SCORED | 1.2.23 | PATCH | L1 | MASTER | If argument '--etcd-keyfile' does not exist, add it"
+    ansible.builtin.lineinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      state: present
+      regexp: '^(\s+- --etcd-keyfile=).*$'
+      line: '    - --etcd-keyfile={{ etcd_keyfile }}'
+      insertafter: '^\s+- kube-apiserver$'
+      #backup: yes
+  - name: "SCORED | 1.2.23 | PATCH | L1 | MASTER | Ensure that the --etcd-keyfile arguments is set as appropriate"
+    ansible.builtin.lineinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      state: present
+      regexp: '^(\s+- --etcd-keyfile=)(?!{{ etcd_keyfile }}).*$'
+      line: '\1{{ etcd_keyfile }}'
       insertafter: '^\s+- kube-apiserver$'
       backrefs: true
       #backup: yes
@@ -1301,23 +1296,39 @@
     - rule_1.2.23
     - master
 
-
-- name: "SCORED | 1.2.24 | PATCH | L1 | MASTER | Ensure that the --service-account-key-file argument is set as appropriate"
+- name: "SCORED | 1.2.24 | PATCH | L1 | MASTER | Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate"
   block:
-  - name: "SCORED | 1.2.24 | PATCH | L1 | MASTER | If argument '--service-account-key-file' does not exist, add it"
+  - name: "SCORED | 1.2.24 | PATCH | L1 | MASTER | If argument '--tls-cert-file' does not exist, add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --service-account-key-file=).*$'
-      line: '    - --service-account-key-file={{ service_account_key_file }}'
+      regexp: '^(\s+- --tls-cert-file=).*$'
+      line: '    - --tls-cert-file={{ tls_cert_file }}'
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
-  - name: "SCORED | 1.2.24 | PATCH | L1 | MASTER | Ensure that the --service-account-key-file argument is set to true"
+  - name: "SCORED | 1.2.24 | PATCH | L1 | MASTER | Ensure that the --tls-cert-file arguments is set as appropriate"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --service-account-key-file=)(?!{{ service_account_key_file }}).*$'
-      line: '\1{{ service_account_key_file }}'
+      regexp: '^(\s+- --tls-cert-file=)(?!{{ tls_cert_file }}).*$'
+      line: '\1{{ tls_cert_file }}'
+      insertafter: '^\s+- kube-apiserver$'
+      backrefs: true
+      #backup: yes
+  - name: "SCORED | 1.2.24 | PATCH | L1 | MASTER | If argument '--tls-private-key-file' does not exist, add it"
+    ansible.builtin.lineinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      state: present
+      regexp: '^(\s+- --tls-private-key-file=).*$'
+      line: '    - --tls-private-key-file={{ tls_private_key_file }}'
+      insertafter: '^\s+- kube-apiserver$'
+      #backup: yes
+  - name: "SCORED | 1.2.24 | PATCH | L1 | MASTER | Ensure that the --tls-private-key-file arguments is set as appropriate"
+    ansible.builtin.lineinfile:
+      path: "{{ api_server_pod_specification_file }}"
+      state: present
+      regexp: '^(\s+- --tls-private-key-file=)(?!{{ tls_private_key_file }}).*$'
+      line: '\1{{ tls_private_key_file }}'
       insertafter: '^\s+- kube-apiserver$'
       backrefs: true
       #backup: yes
@@ -1330,39 +1341,22 @@
     - rule_1.2.24
     - master
 
-- name: "SCORED | 1.2.25 | PATCH | L1 | MASTER | Ensure that the --etcd-certfile and --etcd-keyfile arguments are set as appropriate"
+- name: "SCORED | 1.2.25 | PATCH | L1 | MASTER | Ensure that the --client-ca-file argument is set as appropriate"
   block:
-  - name: "SCORED | 1.2.25 | PATCH | L1 | MASTER | If argument '--etcd-certfile' does not exist, add it"
+  - name: "SCORED | 1.2.25 | PATCH | L1 | MASTER | If argument '--client-ca-file' does not exist, add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --etcd-certfile=).*$'
-      line: '    - --etcd-certfile={{ etcd_certfile }}'
+      regexp: '^(\s+- --client-ca-file=).*$'
+      line: '    - --client-ca-file={{ client_ca_file }}'
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
-  - name: "SCORED | 1.2.25 | PATCH | L1 | MASTER | Ensure that the --etcd-certfile arguments is set as appropriate"
+  - name: "SCORED | 1.2.25 | PATCH | L1 | MASTER | Ensure that the --client-ca-file argument is set as appropriate"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --etcd-certfile=)(?!{{ etcd_certfile }}).*$'
-      line: '\1{{ etcd_certfile }}'
-      insertafter: '^\s+- kube-apiserver$'
-      backrefs: true
-      #backup: yes
-  - name: "SCORED | 1.2.25 | PATCH | L1 | MASTER | If argument '--etcd-keyfile' does not exist, add it"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      state: present
-      regexp: '^(\s+- --etcd-keyfile=).*$'
-      line: '    - --etcd-keyfile={{ etcd_keyfile }}'
-      insertafter: '^\s+- kube-apiserver$'
-      #backup: yes
-  - name: "SCORED | 1.2.25 | PATCH | L1 | MASTER | Ensure that the --etcd-keyfile arguments is set as appropriate"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      state: present
-      regexp: '^(\s+- --etcd-keyfile=)(?!{{ etcd_keyfile }}).*$'
-      line: '\1{{ etcd_keyfile }}'
+      regexp: '^(\s+- --client-ca-file=)(?!{{ client_ca_file }}).*$'
+      line: '\1{{ client_ca_file }}'
       insertafter: '^\s+- kube-apiserver$'
       backrefs: true
       #backup: yes
@@ -1375,39 +1369,23 @@
     - rule_1.2.25
     - master
 
-- name: "SCORED | 1.2.26 | PATCH | L1 | MASTER | Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate"
+
+- name: "SCORED | 1.2.26 | PATCH | L1 | MASTER | Ensure that the --etcd-cafile argument is set as appropriate"
   block:
-  - name: "SCORED | 1.2.26 | PATCH | L1 | MASTER | If argument '--tls-cert-file' does not exist, add it"
+  - name: "SCORED | 1.2.26 | PATCH | L1 | MASTER | If argument '--etcd-cafile' does not exist, add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --tls-cert-file=).*$'
-      line: '    - --tls-cert-file={{ tls_cert_file }}'
+      regexp: '^(\s+- --etcd-cafile=).*$'
+      line: '    - --etcd-cafile={{ etcd_cafile }}'
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
-  - name: "SCORED | 1.2.26 | PATCH | L1 | MASTER | Ensure that the --tls-cert-file arguments is set as appropriate"
+  - name: "SCORED | 1.2.26 | PATCH | L1 | MASTER | Ensure that the --etcd-cafile argument is set as appropriate"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
-      regexp: '^(\s+- --tls-cert-file=)(?!{{ tls_cert_file }}).*$'
-      line: '\1{{ tls_cert_file }}'
-      insertafter: '^\s+- kube-apiserver$'
-      backrefs: true
-      #backup: yes
-  - name: "SCORED | 1.2.26 | PATCH | L1 | MASTER | If argument '--tls-private-key-file' does not exist, add it"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      state: present
-      regexp: '^(\s+- --tls-private-key-file=).*$'
-      line: '    - --tls-private-key-file={{ tls_private_key_file }}'
-      insertafter: '^\s+- kube-apiserver$'
-      #backup: yes
-  - name: "SCORED | 1.2.26 | PATCH | L1 | MASTER | Ensure that the --tls-private-key-file arguments is set as appropriate"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      state: present
-      regexp: '^(\s+- --tls-private-key-file=)(?!{{ tls_private_key_file }}).*$'
-      line: '\1{{ tls_private_key_file }}'
+      regexp: '^(\s+- --etcd-cafile=)(?!{{ etcd_cafile }}).*$'
+      line: '\1{{ etcd_cafile }}'
       insertafter: '^\s+- kube-apiserver$'
       backrefs: true
       #backup: yes
@@ -1420,79 +1398,22 @@
     - rule_1.2.26
     - master
 
-- name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Ensure that the --client-ca-file argument is set as appropriate"
+
+- name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Ensure that the --encryption-provider-config argument is set as appropriate"
   block:
-  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | If argument '--client-ca-file' does not exist, add it"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      state: present
-      regexp: '^(\s+- --client-ca-file=).*$'
-      line: '    - --client-ca-file={{ client_ca_file }}'
-      insertafter: '^\s+- kube-apiserver$'
-      #backup: yes
-  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Ensure that the --client-ca-file argument is set as appropriate"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      state: present
-      regexp: '^(\s+- --client-ca-file=)(?!{{ client_ca_file }}).*$'
-      line: '\1{{ client_ca_file }}'
-      insertafter: '^\s+- kube-apiserver$'
-      backrefs: true
-      #backup: yes
-  when:
-    - rule_1_2_27
-  tags:
-    - level1
-    - perms
-    - patch
-    - rule_1.2.27
-    - master
-
-
-- name: "SCORED | 1.2.28 | PATCH | L1 | MASTER | Ensure that the --etcd-cafile argument is set as appropriate"
-  block:
-  - name: "SCORED | 1.2.28 | PATCH | L1 | MASTER | If argument '--etcd-cafile' does not exist, add it"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      state: present
-      regexp: '^(\s+- --etcd-cafile=).*$'
-      line: '    - --etcd-cafile={{ etcd_cafile }}'
-      insertafter: '^\s+- kube-apiserver$'
-      #backup: yes
-  - name: "SCORED | 1.2.28 | PATCH | L1 | MASTER | Ensure that the --etcd-cafile argument is set as appropriate"
-    ansible.builtin.lineinfile:
-      path: "{{ api_server_pod_specification_file }}"
-      state: present
-      regexp: '^(\s+- --etcd-cafile=)(?!{{ etcd_cafile }}).*$'
-      line: '\1{{ etcd_cafile }}'
-      insertafter: '^\s+- kube-apiserver$'
-      backrefs: true
-      #backup: yes
-  when:
-    - rule_1_2_28
-  tags:
-    - level1
-    - perms
-    - patch
-    - rule_1.2.28
-    - master
-
-
-- name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Ensure that the --encryption-provider-config argument is set as appropriate"
-  block:
-  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Get apiserver start time"
+  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Get apiserver start time"
     ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
     register: apiserver_start
     until: apiserver_start.stdout|length > 0
     retries: 90
     delay: 1
     changed_when: false    
-  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Create target {{ encryption_provider_config_directory }} directory"
+  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Create target {{ encryption_provider_config_directory }} directory"
     ansible.builtin.file:
       path: "{{ encryption_provider_config_directory }}"
       state: directory
       mode: '0755'
-  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Copy file {{ encryption_provider_config_file }} to {{ encryption_provider_config_directory }} directory"
+  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Copy file {{ encryption_provider_config_file }} to {{ encryption_provider_config_directory }} directory"
     ansible.builtin.copy:
       src: "{{ encryption_provider_config_file }}"
       dest: "{{ encryption_provider_config_directory }}/{{ encryption_provider_config_file | basename }}"
@@ -1501,7 +1422,7 @@
       mode: '0644'
       backup: yes
     register: changed_config_file
-  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | If argument '--encryption-provider-config' does not exist, add it"
+  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | If argument '--encryption-provider-config' does not exist, add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
@@ -1510,7 +1431,7 @@
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
     register: changed_specification_file1
-  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Ensure that the --encryption-provider-config argument is set as appropriate"
+  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Ensure that the --encryption-provider-config argument is set as appropriate"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
@@ -1521,7 +1442,7 @@
       #backup: yes
     register: changed_specification_file2
 
-  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Ensure volume for encryption config {{ encryption_provider_config_directory }} exists"
+  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Ensure volume for encryption config {{ encryption_provider_config_directory }} exists"
     ansible.builtin.blockinfile:
       path: "{{ api_server_pod_specification_file }}"
       insertafter: '^  volumes:$'
@@ -1531,7 +1452,7 @@
               type: DirectoryOrCreate
             name: enc
       marker: "# {mark} Ensure volume for encryption config exists"
-  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Ensure volume mount for encryption config {{ encryption_provider_config_directory }} exists"
+  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Ensure volume mount for encryption config {{ encryption_provider_config_directory }} exists"
     ansible.builtin.blockinfile:
       path: "{{ api_server_pod_specification_file }}"
       insertafter: '^    volumeMounts:$'
@@ -1541,7 +1462,7 @@
               readOnly: true
       marker: "# {mark} Ensure volume mount for encryption config exists"
 
-  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Wait till apiserver restarted"
+  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Wait till apiserver restarted"
     ansible.builtin.shell: kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=kube-apiserver -o jsonpath="{.items[0].status.startTime}" || true
     register: apiserver_time
     until: apiserver_start.stdout != apiserver_time.stdout and apiserver_time.stdout|length > 0
@@ -1551,38 +1472,38 @@
     changed_when: false
     when: changed_config_file.changed or changed_specification_file1.changed or changed_specification_file2.changed
 
-  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Check if ETCD is Encrypted"
+  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Check if ETCD is Encrypted"
     block:
-    - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Set environment variables"
+    - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Set environment variables"
       set_fact:
         test_key_name: "test-key"
         test_secret_name: "test-encryption"
         test_secret_namespace: "kube-system" # kube-system is used because once ValidatingAdmissionPolicy are applied in Section 5 this task will only get succeeded in the namespace where exclustions are applied in policy binding
         test_secret: "secret1"  # Plaintext value of the secret
 
-    - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Get the hostname of the current control plane host"
+    - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Get the hostname of the current control plane host"
       shell: hostname
       register: current_hostname
       changed_when: false
 
-    - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Identify the etcd pod for the current host"
+    - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Identify the etcd pod for the current host"
       shell: |
         kubectl --kubeconfig={{ kubeconfig_path }} -n kube-system get pods -l component=etcd -o jsonpath='{.items[?(@.spec.nodeName=="{{ current_hostname.stdout }}")].metadata.name}'
       register: etcd_pod_name
       changed_when: false
 
-    - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Fail if etcd pod is not found"
+    - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Fail if etcd pod is not found"
       fail:
         msg: "ERROR: unable to get pod name"
       when: etcd_pod_name.stdout == ""
 
-    - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Create a temporary Kubernetes secret"
+    - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Create a temporary Kubernetes secret"
       shell: |
         kubectl --kubeconfig={{ kubeconfig_path }} create secret generic {{ test_secret_name }} --from-literal={{ test_key_name }}={{ test_secret }} -n {{ test_secret_namespace }}
       ignore_errors: yes
       changed_when: false
 
-    - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Retrieve the secret from etcd"
+    - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Retrieve the secret from etcd"
       shell: |
         kubectl --kubeconfig={{ kubeconfig_path }} exec {{ etcd_pod_name.stdout }} -n kube-system -- sh -c "
         ETCDCTL_API=3 \
@@ -1594,53 +1515,53 @@
       ignore_errors: yes
       changed_when: false
 
-    - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Delete the temporary Kubernetes secret"
+    - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Delete the temporary Kubernetes secret"
       shell: kubectl --kubeconfig={{ kubeconfig_path }} delete secret {{ test_secret_name }} -n {{ test_secret_namespace }}
       ignore_errors: yes
       changed_when: false
 
-    - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Check if the secret key or value is found in etcd output"
+    - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Check if the secret key or value is found in etcd output"
       set_fact:
         test_grep_check: "{{ etcd_secret.stdout | regex_search(test_secret_name) }}"
         test_grep: "{{ etcd_secret.stdout | regex_search(test_key_name + '..' + test_secret) }}"
 
-    - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Determine if the secret data is encrypted"
+    - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Determine if the secret data is encrypted"
       set_fact:
         is_encrypted: "{{ 'Yes' if test_grep_check == '' or test_grep == '' else 'No' }}"
 
-    - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Display encryption check result"
+    - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Display encryption check result"
       debug:
         msg: "Secrets encryption check result: {{ is_encrypted }}"
 
-    - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Fail if is_encrypted is False"
+    - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Fail if is_encrypted is False"
       fail:
         msg: "There was problem setting ETCD encryption, exiting playbook. Please coorect them before proceeding further"
       when: not is_encrypted | bool
     run_once: true   # the block needs to run on only on etcd host
 
-  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Ensure all existing Secrets are encrypted"
+  - name: "SCORED | 1.2.27 | PATCH | L1 | MASTER | Ensure all existing Secrets are encrypted"
     ansible.builtin.shell: "kubectl --kubeconfig={{ kubeconfig_path }} get secrets --all-namespaces -o json | kubectl --kubeconfig={{ kubeconfig_path }} replace -f -"
     register: set_encryption
     run_once: true
     changed_when: false
   when:
-    - rule_1_2_29
+    - rule_1_2_27
   tags:
     - level1
     - perms
     - patch
-    - rule_1.2.29
+    - rule_1.2.27
     - master
 
 
-- name: "SCORED | 1.2.30 | PATCH | L1 | MASTER | Ensure that encryption providers are appropriately configured"
+- name: "SCORED | 1.2.28 | PATCH | L1 | MASTER | Ensure that encryption providers are appropriately configured"
   block:
-  - name: "SCORED | 1.2.30 | PATCH | L1 | MASTER | Create target {{ encryption_provider_config_directory }} directory"
+  - name: "SCORED | 1.2.28 | PATCH | L1 | MASTER | Create target {{ encryption_provider_config_directory }} directory"
     ansible.builtin.file:
       path: "{{ encryption_provider_config_directory }}"
       state: directory
       mode: '0755'
-  - name: "SCORED | 1.2.30 | PATCH | L1 | MASTER | Copy file {{ encryption_provider_config_file }} to {{ encryption_provider_config_directory }} directory"
+  - name: "SCORED | 1.2.28 | PATCH | L1 | MASTER | Copy file {{ encryption_provider_config_file }} to {{ encryption_provider_config_directory }} directory"
     ansible.builtin.copy:
       src: "{{ encryption_provider_config_file }}"
       dest: "{{ encryption_provider_config_directory }}/{{ encryption_provider_config_file | basename }}"
@@ -1649,18 +1570,18 @@
       mode: '0644'
       backup: yes
   when:
-    - rule_1_2_30
+    - rule_1_2_28
   tags:
     - level1
     - perms
     - patch
-    - rule_1.2.30
+    - rule_1.2.28
     - master
 
 
-- name: "SCORED | 1.2.31 | PATCH | L1 | MASTER | Ensure that the --tls-cipher-suites argument is set as appropriate"
+- name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Ensure that the API Server only makes use of Strong Cryptographic Ciphers" 
   block:
-  - name: "SCORED | 1.2.31 | PATCH | L1 | MASTER | If argument '--tls-cipher-suites' does not exist, add it"
+  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | If argument '--tls-cipher-suites' does not exist, add it"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
@@ -1668,7 +1589,7 @@
       line: '    - --tls-cipher-suites={{ tls_cipher_suites }}'
       insertafter: '^\s+- kube-apiserver$'
       #backup: yes
-  - name: "SCORED | 1.2.31 | PATCH | L1 | MASTER | Ensure that the --tls-cipher-suites argument is set as appropriate"
+  - name: "SCORED | 1.2.29 | PATCH | L1 | MASTER | Ensure that the --tls-cipher-suites argument is set as appropriate"
     ansible.builtin.lineinfile:
       path: "{{ api_server_pod_specification_file }}"
       state: present
@@ -1678,12 +1599,12 @@
       backrefs: true
       #backup: yes
   when:
-    - rule_1_2_31
+    - rule_1_2_29
   tags:
     - level1
     - perms
     - patch
-    - rule_1.2.31
+    - rule_1.2.29
     - master
 ########################################################
 #endregion API Server pod specification file

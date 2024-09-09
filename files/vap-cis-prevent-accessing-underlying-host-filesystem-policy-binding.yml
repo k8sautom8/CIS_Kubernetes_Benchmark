@@ -1,0 +1,42 @@
+# Validating Admission Policy
+# Name: Prevent containers from accessing underlying host
+#       Kubernetes pods can use host bind mounts (i.e. directories and volumes mounted on the container host) in containers.
+#       Using a hostPath mount can enable attackers to break from the container and gain access to the underlying host.
+#       Therefore, it's not recommended to use bind mounts for application pods.
+# Author: Abhijit Jadhav
+# Docs: https://hub.datree.io/built-in-rules/prevent-accessing-underlying-host
+# Severity: Low
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: "vap-cis-prevent-accessing-underlying-host-filesystem-policy-binding"
+spec:
+  policyName: "vap-cis-prevent-accessing-underlying-host-filesystem-policy"
+  validationActions: [Deny]
+  paramRef:
+    name: validation-parameters
+    parameterNotFoundAction: "Deny"
+  matchResources: {}
+
+### The namespace exclusion logic now moved into CRD, Parameter and embeded in Policy. This gives more flexibility on managing and maintaing common exclusions
+### You can still exclude additional app namespaces which are specific to the policy exclusion using following matchExpressions
+###
+# matchResources:
+#   namespaceSelector:
+#     matchExpressions:
+#     - key: kubernetes.io/metadata.name
+#       operator: NotIn
+#       values:
+#       - app-one-namespace
+#       - app-two-namespace
+###
+### OR using labels
+###
+# matchResources:
+#   namespaceSelector:
+#     matchExpressions:
+#       namsSpaceSelector:
+#         matchLabels:
+#           environment: prod
+

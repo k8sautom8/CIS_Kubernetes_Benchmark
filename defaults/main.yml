@@ -75,26 +75,24 @@ rule_1_2_8: true   # PATCH | L1 | MASTER | Ensure that the --authorization-mode 
 rule_1_2_9: true   # AUDIT | L1 | MASTER | Ensure that the admission control plugin EventRateLimit is set. NOTE: Check admission_control_eventratelimit_file and modify per your requirement
 rule_1_2_10: true  # AUDIT | L1 | MASTER | Ensure that the admission control plugin AlwaysAdmit is not set
 rule_1_2_11: false # AUDIT | L1 | MASTER | Ensure that the admission control plugin AlwaysPullImages is set. NOTE: AlwaysPullImages could cause delays and quality of service depending on your setup.
-rule_1_2_12: false # AUDIT | L1 | MASTER | Ensure that the admission control plugin SecurityContextDeny is set if PodSecurityPolicy is not used. NOTE: Both SecurityContextDeny and PodSecurityPolicy are deprecated, now replaced by the PodSecurity admission
-rule_1_2_13: true  # AUDIT | L1 | MASTER | Ensure that the admission control plugin ServiceAccount is set
-rule_1_2_14: true  # AUDIT | L1 | MASTER | Ensure that the admission control plugin NamespaceLifecycle is set
-rule_1_2_15: true  # AUDIT | L1 | MASTER | Ensure that the admission control plugin NodeRestriction is set
-rule_1_2_16: true  # PATCH | L1 | MASTER | Ensure that the --secure-port argument is not set to {{ secure_port }}
-rule_1_2_17: true  # PATCH | L1 | MASTER | Ensure that the --profiling argument is set to false
-rule_1_2_18: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-path argument is set. NOTE: file mount on kube-apiserver pod
-rule_1_2_19: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-maxage argument is set to 30 or as appropriate
-rule_1_2_20: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-maxbackup argument is set to 10 or as appropriate
-rule_1_2_21: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-maxsize argument is set to 100 or as appropriate
-rule_1_2_22: true  # PATCH | L1 | MASTER | Ensure that the --request-timeout argument is set as appropriate. NOTE : Recommeded value 300Sec is too high. default is 60Sec, we will set this to 120Sec
-rule_1_2_23: true  # PATCH | L1 | MASTER | Ensure that the --service-account-lookup argument is set to true
-rule_1_2_24: true  # PATCH | L1 | MASTER | Ensure that the --service-account-key-file argument is set as appropriate
-rule_1_2_25: true  # PATCH | L1 | MASTER | Ensure that the --etcd-certfile and --etcd-keyfile arguments are set as appropriate
-rule_1_2_26: true  # PATCH | L1 | MASTER | Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate
-rule_1_2_27: true  # PATCH | L1 | MASTER | Ensure that the --client-ca-file argument is set as appropriate
-rule_1_2_28: true  # PATCH | L1 | MASTER | Ensure that the --etcd-cafile argument is set as appropriate
-rule_1_2_29: true  # PATCH | L1 | MASTER | Ensure that the --encryption-provider-config argument is set as appropriate. NOTE: taks has been tested and works flawlessley, understand it and be careful applying this.
-rule_1_2_30: true  # PATCH | L1 | MASTER | Ensure that encryption providers are appropriately configured
-rule_1_2_31: true  # PATCH | L1 | MASTER | Ensure that the --tls-cipher-suites argument is set as appropriate
+rule_1_2_12: true  # AUDIT | L1 | MASTER | Ensure that the admission control plugin ServiceAccount is set
+rule_1_2_13: true  # AUDIT | L1 | MASTER | Ensure that the admission control plugin NamespaceLifecycle is set
+rule_1_2_14: true  # AUDIT | L1 | MASTER | Ensure that the admission control plugin NodeRestriction is set
+rule_1_2_15: true  # PATCH | L1 | MASTER | Ensure that the --profiling argument is set to false
+rule_1_2_16: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-path argument is set. NOTE: file mount on kube-apiserver pod
+rule_1_2_17: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-maxage argument is set to 30 or as appropriate
+rule_1_2_18: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-maxbackup argument is set to 10 or as appropriate
+rule_1_2_19: true  # PATCH | L1 | MASTER | Ensure that the --audit-log-maxsize argument is set to 100 or as appropriate
+rule_1_2_20: true  # PATCH | L1 | MASTER | Ensure that the --request-timeout argument is set as appropriate. NOTE : Recommeded value 300Sec is too high. default is 60Sec, we will set this to 120Sec
+rule_1_2_21: true  # PATCH | L1 | MASTER | Ensure that the --service-account-lookup argument is set to true
+rule_1_2_22: true  # PATCH | L1 | MASTER | Ensure that the --service-account-key-file argument is set as appropriate
+rule_1_2_23: true  # PATCH | L1 | MASTER | Ensure that the --etcd-certfile and --etcd-keyfile arguments are set as appropriate
+rule_1_2_24: true  # PATCH | L1 | MASTER | Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate
+rule_1_2_25: true  # PATCH | L1 | MASTER | Ensure that the --client-ca-file argument is set as appropriate
+rule_1_2_26: true  # PATCH | L1 | MASTER | Ensure that the --etcd-cafile argument is set as appropriate
+rule_1_2_27: true  # PATCH | L1 | MASTER | Ensure that the --encryption-provider-config argument is set as appropriate. NOTE: task has been tested and works flawlessley, understand it and be careful applying this.
+rule_1_2_28: true  # PATCH | L1 | MASTER | Ensure that encryption providers are appropriately configured
+rule_1_2_29: true  # PATCH | L1 | MASTER | Ensure that the API Server only makes use of Strong Cryptographic Ciphers
 rule_1_3_1: true   # PATCH | L1 | MASTER | Ensure that the --terminated-pod-gc-threshold argument is set as appropriate
 rule_1_3_2: true   # PATCH | L1 | MASTER | Ensure that the --profiling argument is set to false
 rule_1_3_3: true   # PATCH | L1 | MASTER | Ensure that the --use-service-account-credentials argument is set to true
@@ -119,7 +117,9 @@ rule_2_7: true     # PATCH | L2 | MASTER | Ensure that a unique Certificate Auth
 
 #### SECTION3 ####
   #LEVEL 1 | MASTER
-rule_3_1_1: true   # AUDIT | L1 | MASTER | Client certificate authentication should not be used for users
+rule_3_1_1: true   # AUDIT | L1 | MASTER | Client certificate authentication should not be used for users. NOTE: Not implemented. External site specific implementation
+rule_3_1_2: true   # AUDIT | L1 | MASTER | Service account token authentication should not be used for users. NOTE: Not implemented. External site specific implementation
+rule_3_1_3: true   # AUDIT | L1 | MASTER | Bootstrap token authentication should not be used for users. NOTE: Not implemented. External site specific implementation
 rule_3_2_1: true   # PATCH | L1 | MASTER | Ensure that a minimal audit policy is created
   #LEVEL 2 | MASTER
 rule_3_2_2: true   # AUDIT | L2 | MASTER | Ensure that the audit policy covers key security concerns
@@ -142,38 +142,44 @@ rule_4_2_2: true   # PATCH | L1 | WORKER | Ensure that the --authorization-mode 
 rule_4_2_3: true   # PATCH | L1 | WORKER | Ensure that the --client-ca-file argument is set as appropriate
 rule_4_2_4: true   # PATCH | L1 | WORKER | Verify that the --read-only-port argument is set to 0
 rule_4_2_5: true   # PATCH | L1 | WORKER | Ensure that the --streaming-connection-idle-timeout argument is not set to 0
-rule_4_2_6: true   # PATCH | L1 | WORKER | Ensure that the --protect-kernel-defaults argument is set to true
-rule_4_2_7: true   # PATCH | L1 | WORKER | Ensure that the --make-iptables-util-chains argument is set to true
-rule_4_2_8: true   # AUDIT | L1 | WORKER | Ensure that the --hostname-override argument is not set
-rule_4_2_10: false # PATCH | L1 | WORKER | Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate. NOTE: needs follow-up, do not use it
-rule_4_2_11: true  # PATCH | L1 | WORKER | Ensure that the --rotate-certificates argument is not set to false
-rule_4_2_12: true  # PATCH | L1 | WORKER | Verify that the RotateKubeletServerCertificate argument is set to true. NOTE: serverTLSBootstrap will be set to true; not RotateKubeletServerCertificate. any of these have same effect
-rule_4_2_13: true  # PATCH | L1 | WORKER | Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers 
+rule_4_2_6: true   # PATCH | L1 | WORKER | Ensure that the --make-iptables-util-chains argument is set to true
+rule_4_2_7: true   # AUDIT | L1 | WORKER | Ensure that the --hostname-override argument is not set
+rule_4_2_9: false # PATCH | L1 | WORKER | Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate. NOTE: needs follow-up, do not use it
+rule_4_2_10: true  # PATCH | L1 | WORKER | Ensure that the --rotate-certificates argument is not set to false
+rule_4_2_11: true  # PATCH | L1 | WORKER | Verify that the RotateKubeletServerCertificate argument is set to true. NOTE: serverTLSBootstrap will be set to true; not RotateKubeletServerCertificate. any of these have same effect
+rule_4_2_12: true  # PATCH | L1 | WORKER | Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers 
+rule_4_2_13: true  # PATCH | L1 | WORKER | Ensure that a limit is set on pod PIDs. NOTE: kubelet_pod_pid_limit: PodPidsLimit is set to 1024 which may be high or low for your requirement.
   #LEVEL 2 | WORKER
-rule_4_2_9: true   # PATCH | L2 | WORKER | Ensure that the --event-qps argument is set to 0 or a level which ensures appropriate event capture. NOTE: Do not set 'event_record_qps' anything other than 0; Events are an important source of security information and analytics that ensure that your environment is consistently monitored using the event data
+rule_4_2_8: true   # PATCH | L2 | WORKER | Ensure that the eventRecordQPS argument is set to a level which ensures appropriate event capture. NOTE: Do not set 'event_record_qps' anything other than 0; Events are an important source of security information and analytics that ensure that your environment is consistently monitored using the event data
 
 #### SECTION5 ####
 # NOTE: Section 5 use ValidatingAdmissionPolicy which is apiVersion: admissionregistration.k8s.io/v1 in Kubernetes Version 1.30.0 and above. The ValidatingAdmissionPolicy is enabled by default in v1.30.0 and above
 # For lower Kubernetes version the feature will need to be enabled with feature-gates and is in alpha and beta release depending on the version of Kubernetes cluster you have
   #LEVEL 1 | MASTER
-rule_5_0_0: true  # PRE-REQ | Installing custom CRD and Params for ValidatingAdmissionPolicy
-rule_5_1_1: true  # AUDIT | L1 | MASTER | Ensure that the cluster-admin role is only used where required 
+rule_5_0_0: true   # PRE-REQ | Installing custom CRD and Params for ValidatingAdmissionPolicy
+rule_5_1_1: true   # AUDIT | L1 | MASTER | Ensure that the cluster-admin role is only used where required 
 rule_5_1_2: false  # AUDIT | L1 | MASTER | Minimize access to secrets
 rule_5_1_4: false  # AUDIT | L1 | MASTER | Minimize access to create pods
 rule_5_1_5: true   # AUDIT | L1 | MASTER | Ensure that default service accounts are not actively used. NOTE: Kubernetes Version 1.30.0 and above.
-rule_5_1_6: false  # AUDIT | L1 | MASTER | Ensure that Service Account Tokens are only mounted where necessary
-rule_5_2_1: true   # AUDIT | L1 | MASTER | Minimize the admission of privileged containers. NOTE: Kubernetes Version 1.30.0 and above.
-rule_5_2_2: true   # AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host process ID namespace. NOTE: Kubernetes Version 1.30.0 and above.
-rule_5_2_3: true   # AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host IPC namespace. NOTE: Kubernetes Version 1.30.0 and above.
-rule_5_2_4: true   # AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host network namespace. NOTE: Kubernetes Version 1.30.0 and above.
-rule_5_2_5: true   # AUDIT | L1 | MASTER | Minimize the admission of containers with allowPrivilegeEscalation. NOTE: Kubernetes Version 1.30.0 and above.
-rule_5_2_7: true   # AUDIT | L1 | MASTER | Minimize the admission of containers with the NET_RAW capability. NOTE: Kubernetes Version 1.30.0 and above.
-rule_5_2_8: true   # AUDIT | L1 | MASTER | Minimize the admission of containers with added capabilities. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_1_6: false  # AUDIT | L1 | MASTER | Ensure that Service Account Tokens are only mounted where necessary. NOTE: Not implemented
+rule_5_1_7: true   # AUDIT | L1 | MASTER | Avoid use of system:masters group
+rule_5_1_8: false  # AUDIT | L1 | MASTER | Limit use of the Bind, Impersonate and Escalate permissions in the Kubernetes cluster. NOTE: Not implemented
+rule_5_2_1: false  # AUDIT | L1 | MASTER | Ensure that the cluster has at least one active policy control mechanism in place. NOTE: Not implemented 
+rule_5_2_2: true   # AUDIT | L1 | MASTER | Minimize the admission of privileged containers. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_3: true   # AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host process ID namespace. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_4: true   # AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host IPC namespace. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_5: true   # AUDIT | L1 | MASTER | Minimize the admission of containers wishing to share the host network namespace. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_6: true   # AUDIT | L1 | MASTER | Minimize the admission of containers with allowPrivilegeEscalation. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_8: true   # AUDIT | L1 | MASTER | Minimize the admission of containers with the NET_RAW capability. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_9: true   # AUDIT | L1 | MASTER | Minimize the admission of containers with added capabilities. NOTE: Kubernetes Version 1.30.0 and above.
+rule_5_2_11: true  # AUDIT | L1 | MASTER | Minimize the admission of Windows HostProcess Containers
+rule_5_2_12: true  # AUDIT | L1 | MASTER | Minimize the admission of HostPath volumes
+rule_5_2_13: true  # AUDIT | L1 | MASTER | Minimize the admission of containers which use HostPorts
 rule_5_3_1: false  # AUDIT | L1 | MASTER | Ensure that the CNI in use supports Network Policies
 rule_5_7_1: false  # AUDIT | L1 | MASTER | Create administrative boundaries between resources using namespaces
   #LEVEL 2 | MASTER
-rule_5_2_6: true  # AUDIT | L2 | MASTER | Minimize the admission of root containers
-rule_5_2_9: false  # AUDIT | L2 | MASTER | Minimize the admission of containers with capabilities assigned
+rule_5_2_7: true   # AUDIT | L2 | MASTER | Minimize the admission of root containers
+rule_5_2_10: true  # AUDIT | L2 | MASTER | Minimize the admission of containers with capabilities assigned. NOTE: Not implemented, 5.2.8 and 5.2.9 covers this already.
 rule_5_3_2: false  # AUDIT | L2 | MASTER | Ensure that all Namespaces have Network Policies defined
 rule_5_4_1: false  # AUDIT | L2 | MASTER | Prefer using secrets as files over secrets as environment variables
 rule_5_4_2: false  # AUDIT | L2 | MASTER | Consider external secret storage
@@ -254,6 +260,7 @@ streaming_connection_idle_timeout: 10m
 kubelet_tls_cert_file: "/this/path/needs/to/be/defined"
 kubelet_tls_private_key_file: "/this/path/needs/to/be/defined"
 kubelet_tls_cipher_suites: "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256"
+kubelet_pod_pid_limit: 1024
 event_record_qps: 0
 
 # Misc 
@@ -297,3 +304,12 @@ vap_cis_restrict_seccomp_profiles_policy: "vap-cis-restrict-seccomp-profiles-pol
 vap_cis_restrict_seccomp_profiles_policy_binding: "vap-cis-restrict-seccomp-profiles-policy-binding.yml"
 vap_cis_prevent_escalating_privileges_policy: "vap-cis-prevent-escalating-privileges-policy.yml"
 vap_cis_prevent_escalating_privileges_policy_binding: "vap-cis-prevent-escalating-privileges-policy-binding.yml"
+vap_cis_minimize_windows_hostprocess_policy: "vap-cis-minimize-windows-hostprocess-policy.yml"
+vap_cis_minimize_windows_hostprocess_policy_binding: "vap-cis-minimize-windows-hostprocess-policy-binding.yml"
+vap_cis_prevent_accessing_underlying_host_filesystem_policy: "vap-cis-prevent-accessing-underlying-host-filesystem-policy.yml"
+vap_cis_prevent_accessing_underlying_host_filesystem_policy_binding: "vap-cis-prevent-accessing-underlying-host-filesystem-policy-binding.yml"
+vap_cis_restrict_hostport_policy: "vap-cis-restrict-hostport-policy.yml"
+vap_cis_restrict_hostport_policy_binding: "vap-cis-restrict-hostport-policy-binding.yml"
+vap_cis_prevent_system_master_group_policy: "vap-cis-prevent-system-master-group-policy.yml"
+vap_cis_prevent_system_master_group_policy_binding: "vap-cis-prevent-system-master-group-policy-binding.yml"
+

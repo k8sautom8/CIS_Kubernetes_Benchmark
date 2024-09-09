@@ -1,0 +1,96 @@
+# Validating Admission Policy
+# Name: Prevent containers from accessing underlying host
+#	Kubernetes pods can use host bind mounts (i.e. directories and volumes mounted on the container host) in containers. 
+#	Using a hostPath mount can enable attackers to break from the container and gain access to the underlying host. 
+#	Therefore, it's not recommended to use bind mounts for application pods.
+# Author: Abhijit Jadhav
+# Docs: https://hub.datree.io/built-in-rules/prevent-accessing-underlying-host
+# Severity: Low
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "vap-cis-prevent-accessing-underlying-host-filesystem-policy"
+spec:
+  failurePolicy: Fail
+  paramKind:
+    apiVersion: k8sautom8.com/v1
+    kind: ValidationParameters
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs", "cronjobs"]
+  validations:
+    - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.containers) || \
+                   object.spec.volumes.all(vol, !(has(vol.hostPath)))"
+      message: "Containers in Pod. Invalid key `hostPath` - refrain from using this mount to \
+                prevent an attack on the underlying host. Please refer: https://hub.datree.io/built-in-rules/prevent-accessing-underlying-host"
+
+    - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.initContainers) || \
+                   object.spec.volumes.all(vol, !(has(vol.hostPath)))"
+      message: "initContainers in Pod. Invalid key `hostPath` - refrain from using this mount to \
+                prevent an attack on the underlying host. Please refer: https://hub.datree.io/built-in-rules/prevent-accessing-underlying-host"
+
+    - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.ephemeralContainers) || \
+                   object.spec.volumes.all(vol, !(has(vol.hostPath)))"
+      message: "ephemeralContainers in Pod. Invalid key `hostPath` - refrain from using this mount to \
+                prevent an attack on the underlying host. Please refer: https://hub.datree.io/built-in-rules/prevent-accessing-underlying-host"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.template.spec.containers) || \
+                   object.spec.template.spec.volumes.all(vol, !(has(vol.hostPath)))"
+      message: "Containers in Deployments, Replicaset, Daemonsets and Statefulsets. Invalid key `hostPath` - refrain from using this mount to \
+                prevent an attack on the underlying host. Please refer: https://hub.datree.io/built-in-rules/prevent-accessing-underlying-host"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.template.spec.initContainers) || \
+                   object.spec.template.spec.volumes.all(vol, !(has(vol.hostPath)))"
+      message: "initContainers in Deployments, Replicaset, Daemonsets and Statefulsets. Invalid key `hostPath` - refrain from using this mount to \
+                prevent an attack on the underlying host. Please refer: https://hub.datree.io/built-in-rules/prevent-accessing-underlying-host"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.template.spec.ephemeralContainers) || \
+                   object.spec.template.spec.volumes.all(vol, !(has(vol.hostPath)))"
+      message: "ephemeralContainers in Deployments, Replicaset, Daemonsets and Statefulsets. Invalid key `hostPath` - refrain from using this mount to \
+                prevent an attack on the underlying host. Please refer: https://hub.datree.io/built-in-rules/prevent-accessing-underlying-host"
+
+    - expression: "object.kind != 'CronJob' || \
+                   !has(object.spec.jobTemplate.spec.template.spec.containers) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   object.spec.jobTemplate.spec.volumes.all(vol, !(has(vol.hostPath)))"
+      message: "Containers in CronJob. Invalid key `hostPath` - refrain from using this mount to \
+                prevent an attack on the underlying host. Please refer: https://hub.datree.io/built-in-rules/prevent-accessing-underlying-host"
+
+    - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.jobTemplate.spec.template.spec.initContainers) || \
+                   object.spec.jobTemplate.spec.volumes.all(vol, !(has(vol.hostPath)))"
+      message: "initContainers in CronJob. Invalid key `hostPath` - refrain from using this mount to \
+                prevent an attack on the underlying host. Please refer: https://hub.datree.io/built-in-rules/prevent-accessing-underlying-host"
+
+    - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.jobTemplate.spec.template.spec.ephemeralContainers) || \
+                   object.spec.jobTemplate.spec.volumes.all(vol, !(has(vol.hostPath)))"
+      message: "ephemeralContainers in CronJob. Invalid key `hostPath` - refrain from using this mount to \
+                prevent an attack on the underlying host. Please refer: https://hub.datree.io/built-in-rules/prevent-accessing-underlying-host"
+

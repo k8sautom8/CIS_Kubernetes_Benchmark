@@ -1,0 +1,122 @@
+# Validating Admission Policy
+# Name: Minimize the admission of Windows HostProcess Containers
+#	A Windows container making use of the hostProcess flag can interact with the underlying Windows cluster node. 
+#	As per the Kubernetes documentation, this provides "privileged access" to the Windows node.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0202
+# Severity: High
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: "vap-cis-minimize-windows-hostprocess-policy"
+spec:
+  failurePolicy: Fail
+  paramKind:
+    apiVersion: k8sautom8.com/v1
+    kind: ValidationParameters
+  matchConstraints:
+    resourceRules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["pods"]
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments", "replicasets", "daemonsets", "statefulsets"]
+      - apiGroups: ["batch"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["jobs", "cronjobs"]
+  validations:
+    - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.containers) || \
+                   (object.spec.containers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.windowsOptions) || \
+                   !has(container.securityContext.windowsOptions.hostProcess) || \
+                   container.securityContext.windowsOptions.hostProcess == false))"
+      message: "HostProcess in Pod containers are disallowed. The field spec.containers[*].securityContext.windowsOptions.hostProcess must \
+                either be undefined or set to `false`. Please refer: https://hub.armosec.io/docs/c-0202"
+    
+    - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.initContainers) || \
+                   (object.spec.initContainers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.windowsOptions) || \
+                   !has(container.securityContext.windowsOptions.hostProcess) || \
+                   container.securityContext.windowsOptions.hostProcess == false))"
+      message: "HostProcess in Pod initContainers are disallowed. The field spec.initContainers[*].securityContext.windowsOptions.hostProcess must \
+                either be undefined or set to `false`. Please refer: https://hub.armosec.io/docs/c-0202"
+
+    - expression: "object.kind != 'Pod' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.ephemeralContainers) || \
+                   (object.spec.ephemeralContainers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.windowsOptions) || \
+                   !has(container.securityContext.windowsOptions.hostProcess) || \
+                   container.securityContext.windowsOptions.hostProcess == false))"
+      message: "HostProcess in Pod ephemeralContainers are disallowed. The field spec.ephemeralContainers[*].securityContext.windowsOptions.hostProcess must \
+                either be undefined or set to `false`. Please refer: https://hub.armosec.io/docs/c-0202"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.template.spec.containers) || \
+                   (object.spec.template.spec.containers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.windowsOptions) || \
+                   !has(container.securityContext.windowsOptions.hostProcess) || \
+                   container.securityContext.windowsOptions.hostProcess == false))"
+      message: "HostProcess containers are disallowed. The field spec.containers[*].securityContext.windowsOptions.hostProcess must \
+                either be undefined or set to `false`. Please refer: https://hub.armosec.io/docs/c-0202"
+    
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.template.spec.initContainers) || \
+                   (object.spec.template.spec.initContainers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.windowsOptions) || \
+                   !has(container.securityContext.windowsOptions.hostProcess) || \
+                   container.securityContext.windowsOptions.hostProcess == false))"
+      message: "HostProcess containers are disallowed. The field spec.initContainers[*].securityContext.windowsOptions.hostProcess must \
+                either be undefined or set to `false`. Please refer: https://hub.armosec.io/docs/c-0202"
+
+    - expression: "['Deployment','ReplicaSet','DaemonSet','StatefulSet','Job'].all(kind, object.kind != kind) || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.template.spec.ephemeralContainers) || \
+                   (object.spec.template.spec.ephemeralContainers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.windowsOptions) || \
+                   !has(container.securityContext.windowsOptions.hostProcess) || \
+                   container.securityContext.windowsOptions.hostProcess == false))"
+      message: "HostProcess containers are disallowed. The field spec.ephemeralContainers[*].securityContext.windowsOptions.hostProcess must \
+                either be undefined or set to `false`. Please refer: https://hub.armosec.io/docs/c-0202"
+
+    - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.jobTemplate.spec.template.spec.containers) || \
+                   (object.spec.jobTemplate.spec.template.spec.containers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.windowsOptions) || \
+                   !has(container.securityContext.windowsOptions.hostProcess) || \
+                   container.securityContext.windowsOptions.hostProcess == false))"
+      message: "HostProcess in CronJob containers are disallowed. The field spec.containers[*].securityContext.windowsOptions.hostProcess must \
+                either be undefined or set to `false`. Please refer: https://hub.armosec.io/docs/c-0202"
+    
+    - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.jobTemplate.spec.template.spec.initContainers) || \
+                   (object.spec.jobTemplate.spec.template.spec.initContainers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.windowsOptions) || \
+                   !has(container.securityContext.windowsOptions.hostProcess) || \
+                   container.securityContext.windowsOptions.hostProcess == false))"
+      message: "HostProcess in CronJob initContainers are disallowed. The field spec.initContainers[*].securityContext.windowsOptions.hostProcess must \
+                either be undefined or set to `false`. Please refer: https://hub.armosec.io/docs/c-0202"
+
+    - expression: "object.kind != 'CronJob' || \
+                   object.metadata.namespace in params.spec.excludeSystemNamespaces || \
+                   !has(object.spec.jobTemplate.spec.template.spec.ephemeralContainers) || \
+                   (object.spec.jobTemplate.spec.template.spec.ephemeralContainers.all(container, !has(container.securityContext) || \
+                   !has(container.securityContext.windowsOptions) || \
+                   !has(container.securityContext.windowsOptions.hostProcess) || \
+                   container.securityContext.windowsOptions.hostProcess == false))"
+      message: "HostProcess in CronJob ephemeralContainers are disallowed. The field spec.ephemeralContainers[*].securityContext.windowsOptions.hostProcess \
+                must either be undefined or set to `false`. Please refer: https://hub.armosec.io/docs/c-0202"
+

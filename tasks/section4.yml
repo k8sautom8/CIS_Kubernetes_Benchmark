@@ -375,7 +375,7 @@
     - worker
 
 
-- name: "SCORED | 4.2.6 | PATCH | L1 | WORKER | Ensure that the --protect-kernel-defaults argument is set to true"
+- name: "SCORED | 4.2.6 | PATCH | L1 | WORKER | Ensure that the --make-iptables-util-chains argument is set to true"
   block:
   - name: "SCORED | 4.2.6 | PATCH | L1 | WORKER | Slurp file {{ kubelet_config_file }}"
     slurp:
@@ -387,18 +387,18 @@
   - name: "SCORED | 4.2.6 | PATCH | L1 | WORKER | Add new value"
     vars: 
       new_value_4_2_6:
-        protectKernelDefaults: true
+        makeIPTablesUtilChains: true
     set_fact:
       after_4_2_6: "{{ before_4_2_6 | combine(new_value_4_2_6) }}"
-    when: before_4_2_6.protectKernelDefaults is not defined
+    when: before_4_2_6.makeIPTablesUtilChains is not defined
   - name: "SCORED | 4.2.6 | PATCH | L1 | WORKER | Update existing value"
     set_fact:
       after_4_2_6: "{{ before_4_2_6 | combine(after_4_2_6, recursive=True) }}"
     vars: 
       after_4_2_6:
-        protectKernelDefaults: true
-    when: before_4_2_6.protectKernelDefaults is defined and before_4_2_6.protectKernelDefaults != true
-  - name: "SCORED | 4.2.6 | PATCH | L1 | WORKER | Ensure that the --protect-kernel-defaults argument is set to true"
+        makeIPTablesUtilChains: true
+    when: before_4_2_6.makeIPTablesUtilChains is defined and before_4_2_6.makeIPTablesUtilChains != true
+  - name: "SCORED | 4.2.6 | PATCH | L1 | WORKER | Ensure that the --make-iptables-util-chains argument is set to true"
     ansible.builtin.copy:
       content: '{{ after_4_2_6 | to_nice_yaml }}'
       dest: "{{ kubelet_config_file }}"
@@ -413,47 +413,9 @@
     - worker
 
 
-- name: "SCORED | 4.2.7 | PATCH | L1 | WORKER | Ensure that the --make-iptables-util-chains argument is set to true"
+- name: "SCORED | 4.2.7 | AUDIT | L1 | WORKER | Ensure that the --hostname-override argument is not set"
   block:
-  - name: "SCORED | 4.2.7 | PATCH | L1 | WORKER | Slurp file {{ kubelet_config_file }}"
-    slurp:
-      src: "{{ kubelet_config_file }}"
-    register: slurped_4_2_7
-  - name: "SCORED | 4.2.7 | PATCH | L1 | WORKER | Convert to dictionary"
-    set_fact:
-      before_4_2_7: "{{ slurped_4_2_7.content|b64decode|from_yaml }}"
-  - name: "SCORED | 4.2.7 | PATCH | L1 | WORKER | Add new value"
-    vars: 
-      new_value_4_2_7:
-        makeIPTablesUtilChains: true
-    set_fact:
-      after_4_2_7: "{{ before_4_2_7 | combine(new_value_4_2_7) }}"
-    when: before_4_2_7.makeIPTablesUtilChains is not defined
-  - name: "SCORED | 4.2.7 | PATCH | L1 | WORKER | Update existing value"
-    set_fact:
-      after_4_2_7: "{{ before_4_2_7 | combine(after_4_2_7, recursive=True) }}"
-    vars: 
-      after_4_2_7:
-        makeIPTablesUtilChains: true
-    when: before_4_2_7.makeIPTablesUtilChains is defined and before_4_2_7.makeIPTablesUtilChains != true
-  - name: "SCORED | 4.2.7 | PATCH | L1 | WORKER | Ensure that the --make-iptables-util-chains argument is set to true"
-    ansible.builtin.copy:
-      content: '{{ after_4_2_7 | to_nice_yaml }}'
-      dest: "{{ kubelet_config_file }}"
-      backup: yes
-    when: after_4_2_7 is defined
-  when: rule_4_2_7
-  tags:
-    - level1
-    - perms
-    - rule_4.2.7
-    - patch
-    - worker
-
-
-- name: "SCORED | 4.2.8 | AUDIT | L1 | WORKER | Ensure that the --hostname-override argument is not set"
-  block:
-  - name: "SCORED | 4.2.8 | AUDIT | L1 | WORKER | Test if --hostname-override is not set"
+  - name: "SCORED | 4.2.7 | AUDIT | L1 | WORKER | Test if --hostname-override is not set"
     ansible.builtin.lineinfile:
       path: "{{ kubelet_service_file }}"
       regexp: '--hostname-override'
@@ -461,116 +423,155 @@
     check_mode: yes
     changed_when: false
     register: hostname_override
-  - name: "SCORED | 4.2.8 | AUDIT | L1 | WORKER | Assert --hostname-override argument is not set"
+  - name: "SCORED | 4.2.7 | AUDIT | L1 | WORKER | Assert --hostname-override argument is not set"
     assert:
       that: not hostname_override.found
       success_msg: "'--hostname-override' argument is not set"
       fail_msg: "'--hostname-override' argument is set"
   when:
-    - rule_4_2_8
+    - rule_4_2_7
   tags:
     - level1
     - audit
-    - rule_4.2.8
+    - rule_4.2.7
     - worker
 
-- name: "SCORED | 4.2.9 | PATCH | L2 | WORKER | Ensure that the --event-qps argument is set to 0 or a level which ensures appropriate event capture"
+- name: "SCORED | 4.2.8 | PATCH | L2 | WORKER | Ensure that the eventRecordQPS argument is set to a level which ensures appropriate event capture"
   block:
-  - name: "SCORED | 4.2.9 | PATCH | L2 | WORKER | Slurp file {{ kubelet_config_file }}"
+  - name: "SCORED | 4.2.8 | PATCH | L2 | WORKER | Slurp file {{ kubelet_config_file }}"
     slurp:
       src: "{{ kubelet_config_file }}"
-    register: slurped_4_2_9
-  - name: "SCORED | 4.2.9 | PATCH | L2 | WORKER | Convert to dictionary"
+    register: slurped_4_2_8
+  - name: "SCORED | 4.2.8 | PATCH | L2 | WORKER | Convert to dictionary"
     set_fact:
-      before_4_2_9: "{{ slurped_4_2_9.content|b64decode|from_yaml }}"
-  - name: "SCORED | 4.2.9 | PATCH | L2 | WORKER | Add new value"
+      before_4_2_8: "{{ slurped_4_2_8.content|b64decode|from_yaml }}"
+  - name: "SCORED | 4.2.8 | PATCH | L2 | WORKER | Add new value"
     vars: 
-      new_value_4_2_9:
+      new_value_4_2_8:
         eventRecordQPS: "{{ event_record_qps }}"
     set_fact:
-      after_4_2_9: "{{ before_4_2_9 | combine(new_value_4_2_9) }}"
-    when: before_4_2_9.eventRecordQPS is not defined
-  - name: "SCORED | 4.2.9 | PATCH | L2 | WORKER | Update existing value"
+      after_4_2_8: "{{ before_4_2_8 | combine(new_value_4_2_8) }}"
+    when: before_4_2_8.eventRecordQPS is not defined
+  - name: "SCORED | 4.2.8 | PATCH | L2 | WORKER | Update existing value"
     set_fact:
-      after_4_2_9: "{{ before_4_2_9 | combine(after_4_2_9, recursive=True) }}"
+      after_4_2_8: "{{ before_4_2_8 | combine(after_4_2_8, recursive=True) }}"
     vars: 
-      after_4_2_9:
+      after_4_2_8:
         eventRecordQPS: "{{ event_record_qps }}"
-    when: before_4_2_9.eventRecordQPS is defined and before_4_2_9.eventRecordQPS != event_record_qps
-  - name: "SCORED | 4.2.9 | PATCH | L2 | WORKER | Ensure that the --event-qps argument is set to 0 or a level which ensures appropriate event capture"
+    when: before_4_2_8.eventRecordQPS is defined and before_4_2_8.eventRecordQPS != event_record_qps
+  - name: "SCORED | 4.2.8 | PATCH | L2 | WORKER | Ensure that the --event-qps argument is set to 0 or a level which ensures appropriate event capture"
     ansible.builtin.copy:
-      content: '{{ after_4_2_9 | to_nice_yaml }}'
+      content: '{{ after_4_2_8 | to_nice_yaml }}'
       dest: "{{ kubelet_config_file }}"
       backup: yes
-    when: after_4_2_9 is defined
-  when: rule_4_2_9
+    when: after_4_2_8 is defined
+  when: rule_4_2_8
   tags:
     - level2
     - perms
-    - rule_4.2.9
+    - rule_4.2.8
     - patch
     - worker
 
 
-- name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate"
+- name: "SCORED | 4.2.9 | PATCH | L1 | WORKER | Ensure that the --tls-cert-file and --tls-private-key-file arguments are set as appropriate"
   block:
   ### tlsCertFile ###
-  - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Slurp file {{ kubelet_config_file }}"
+  - name: "SCORED | 4.2.9 | PATCH | L1 | WORKER | Slurp file {{ kubelet_config_file }}"
     slurp:
       src: "{{ kubelet_config_file }}"
-    register: slurped_4_2_10_1
-  - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Convert to dictionary"
+    register: slurped_4_2_9_1
+  - name: "SCORED | 4.2.9 | PATCH | L1 | WORKER | Convert to dictionary"
     set_fact:
-      before_4_2_10_1: "{{ slurped_4_2_10_1.content|b64decode|from_yaml }}"
-  - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Add new value (tlsCertFile)"
+      before_4_2_9_1: "{{ slurped_4_2_9_1.content|b64decode|from_yaml }}"
+  - name: "SCORED | 4.2.9 | PATCH | L1 | WORKER | Add new value (tlsCertFile)"
     vars: 
-      new_value_4_2_10_1:
+      new_value_4_2_9_1:
         tlsCertFile: "{{ kubelet_tls_cert_file }}"
     set_fact:
-      after_4_2_10_1: "{{ before_4_2_10_1 | combine(new_value_4_2_10_1) }}"
-    when: before_4_2_10_1.tlsCertFile is not defined
-  - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Update existing value (tlsCertFile)"
+      after_4_2_9_1: "{{ before_4_2_9_1 | combine(new_value_4_2_9_1) }}"
+    when: before_4_2_9_1.tlsCertFile is not defined
+  - name: "SCORED | 4.2.9 | PATCH | L1 | WORKER | Update existing value (tlsCertFile)"
     set_fact:
-      after_4_2_10_1: "{{ before_4_2_10_1 | combine(after_4_2_10_1, recursive=True) }}"
+      after_4_2_9_1: "{{ before_4_2_9_1 | combine(after_4_2_9_1, recursive=True) }}"
     vars: 
-      after_4_2_10_1:
+      after_4_2_9_1:
         tlsCertFile: "{{ kubelet_tls_cert_file }}"
-    when: before_4_2_10_1.tlsCertFile is defined and before_4_2_10_1.tlsCertFile != kubelet_tls_cert_file
-  - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Ensure that the --tls-cert-file argument is set as appropriate"
+    when: before_4_2_9_1.tlsCertFile is defined and before_4_2_9_1.tlsCertFile != kubelet_tls_cert_file
+  - name: "SCORED | 4.2.9 | PATCH | L1 | WORKER | Ensure that the --tls-cert-file argument is set as appropriate"
     ansible.builtin.copy:
-      content: '{{ after_4_2_10_1 | to_nice_yaml }}'
+      content: '{{ after_4_2_9_1 | to_nice_yaml }}'
       dest: "{{ kubelet_config_file }}"
       backup: yes
-    when: after_4_2_10_1 is defined
+    when: after_4_2_9_1 is defined
 
   ### tlsPrivateKeyFile ###
+  - name: "SCORED | 4.2.9 | PATCH | L1 | WORKER | Slurp file {{ kubelet_config_file }}"
+    slurp:
+      src: "{{ kubelet_config_file }}"
+    register: slurped_4_2_9_2
+  - name: "SCORED | 4.2.9 | PATCH | L1 | WORKER | Convert to dictionary"
+    set_fact:
+      before_4_2_9_2: "{{ slurped_4_2_9_2.content|b64decode|from_yaml }}"
+  - name: "SCORED | 4.2.9 | PATCH | L1 | WORKER | Add new value (tlsPrivateKeyFile)"
+    vars: 
+      new_value_4_2_9_2:
+        tlsPrivateKeyFile: "{{ kubelet_tls_private_key_file }}"
+    set_fact:
+      after_4_2_9_2: "{{ before_4_2_9_2 | combine(new_value_4_2_9_2) }}"
+    when: before_4_2_9_2.tlsPrivateKeyFile is not defined
+  - name: "SCORED | 4.2.9 | PATCH | L1 | WORKER | Update existing value (tlsPrivateKeyFile)"
+    set_fact:
+      after_4_2_9_2: "{{ before_4_2_9_2 | combine(after_4_2_9_2, recursive=True) }}"
+    vars: 
+      after_4_2_9_2:
+        tlsPrivateKeyFile: "{{ kubelet_tls_private_key_file }}"
+    when: before_4_2_9_2.tlsPrivateKeyFile is defined and before_4_2_9_2.tlsPrivateKeyFile != kubelet_tls_private_key_file
+  - name: "SCORED | 4.2.9 | PATCH | L1 | WORKER | Ensure that the --tls-private-key-file argument is set as appropriate"
+    ansible.builtin.copy:
+      content: '{{ after_4_2_9_2 | to_nice_yaml }}'
+      dest: "{{ kubelet_config_file }}"
+      backup: yes
+    when: after_4_2_9_2 is defined
+  when: rule_4_2_9
+  tags:
+    - level1
+    - perms
+    - rule_4.2.9
+    - patch
+    - worker
+    - followup
+
+
+- name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Ensure that the --rotate-certificates argument is not set to false"
+  block:
   - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Slurp file {{ kubelet_config_file }}"
     slurp:
       src: "{{ kubelet_config_file }}"
-    register: slurped_4_2_10_2
+    register: slurped_4_2_10
   - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Convert to dictionary"
     set_fact:
-      before_4_2_10_2: "{{ slurped_4_2_10_2.content|b64decode|from_yaml }}"
-  - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Add new value (tlsPrivateKeyFile)"
+      before_4_2_10: "{{ slurped_4_2_10.content|b64decode|from_yaml }}"
+  - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Add new value"
     vars: 
-      new_value_4_2_10_2:
-        tlsPrivateKeyFile: "{{ kubelet_tls_private_key_file }}"
+      new_value_4_2_10:
+        rotateCertificates: true
     set_fact:
-      after_4_2_10_2: "{{ before_4_2_10_2 | combine(new_value_4_2_10_2) }}"
-    when: before_4_2_10_2.tlsPrivateKeyFile is not defined
-  - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Update existing value (tlsPrivateKeyFile)"
+      after_4_2_10: "{{ before_4_2_10 | combine(new_value_4_2_10) }}"
+    when: before_4_2_10.rotateCertificates is not defined
+  - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Update existing value"
     set_fact:
-      after_4_2_10_2: "{{ before_4_2_10_2 | combine(after_4_2_10_2, recursive=True) }}"
+      after_4_2_10: "{{ before_4_2_10 | combine(after_4_2_10, recursive=True) }}"
     vars: 
-      after_4_2_10_2:
-        tlsPrivateKeyFile: "{{ kubelet_tls_private_key_file }}"
-    when: before_4_2_10_2.tlsPrivateKeyFile is defined and before_4_2_10_2.tlsPrivateKeyFile != kubelet_tls_private_key_file
-  - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Ensure that the --tls-private-key-file argument is set as appropriate"
+      after_4_2_10:
+        rotateCertificates: true
+    when: before_4_2_10.rotateCertificates is defined and before_4_2_10.rotateCertificates != true
+  - name: "SCORED | 4.2.10 | PATCH | L1 | WORKER | Ensure that the --rotate-certificates argument is not set to false "
     ansible.builtin.copy:
-      content: '{{ after_4_2_10_2 | to_nice_yaml }}'
+      content: '{{ after_4_2_10 | to_nice_yaml }}'
       dest: "{{ kubelet_config_file }}"
       backup: yes
-    when: after_4_2_10_2 is defined
+    when: after_4_2_10 is defined
   when: rule_4_2_10
   tags:
     - level1
@@ -578,10 +579,9 @@
     - rule_4.2.10
     - patch
     - worker
-    - followup
 
 
-- name: "SCORED | 4.2.11 | PATCH | L1 | WORKER | Ensure that the --rotate-certificates argument is not set to false"
+- name: "SCORED | 4.2.11 | PATCH | L1 | WORKER | Verify that the RotateKubeletServerCertificate argument is set to true"
   block:
   - name: "SCORED | 4.2.11 | PATCH | L1 | WORKER | Slurp file {{ kubelet_config_file }}"
     slurp:
@@ -593,18 +593,18 @@
   - name: "SCORED | 4.2.11 | PATCH | L1 | WORKER | Add new value"
     vars: 
       new_value_4_2_11:
-        rotateCertificates: true
+        serverTLSBootstrap: true
     set_fact:
       after_4_2_11: "{{ before_4_2_11 | combine(new_value_4_2_11) }}"
-    when: before_4_2_11.rotateCertificates is not defined
+    when: before_4_2_11.serverTLSBootstrap is not defined
   - name: "SCORED | 4.2.11 | PATCH | L1 | WORKER | Update existing value"
     set_fact:
       after_4_2_11: "{{ before_4_2_11 | combine(after_4_2_11, recursive=True) }}"
     vars: 
       after_4_2_11:
-        rotateCertificates: true
-    when: before_4_2_11.rotateCertificates is defined and before_4_2_11.rotateCertificates != true
-  - name: "SCORED | 4.2.11 | PATCH | L1 | WORKER | Ensure that the --rotate-certificates argument is not set to false "
+        serverTLSBootstrap: true
+    when: before_4_2_11.serverTLSBootstrap is defined and before_4_2_11.serverTLSBootstrap != true
+  - name: "SCORED | 4.2.11 | PATCH | L1 | WORKER | Verify that the RotateKubeletServerCertificate argument is set to true"
     ansible.builtin.copy:
       content: '{{ after_4_2_11 | to_nice_yaml }}'
       dest: "{{ kubelet_config_file }}"
@@ -619,7 +619,7 @@
     - worker
 
 
-- name: "SCORED | 4.2.12 | PATCH | L1 | WORKER | Verify that the RotateKubeletServerCertificate argument is set to true"
+- name: "SCORED | 4.2.12 | PATCH | L1 | WORKER | Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers"
   block:
   - name: "SCORED | 4.2.12 | PATCH | L1 | WORKER | Slurp file {{ kubelet_config_file }}"
     slurp:
@@ -631,18 +631,18 @@
   - name: "SCORED | 4.2.12 | PATCH | L1 | WORKER | Add new value"
     vars: 
       new_value_4_2_12:
-        serverTLSBootstrap: true
+        TLSCipherSuites: "{{ kubelet_tls_cipher_suites }}"
     set_fact:
       after_4_2_12: "{{ before_4_2_12 | combine(new_value_4_2_12) }}"
-    when: before_4_2_12.serverTLSBootstrap is not defined
+    when: before_4_2_12.TLSCipherSuites is not defined
   - name: "SCORED | 4.2.12 | PATCH | L1 | WORKER | Update existing value"
     set_fact:
       after_4_2_12: "{{ before_4_2_12 | combine(after_4_2_12, recursive=True) }}"
     vars: 
       after_4_2_12:
-        serverTLSBootstrap: true
-    when: before_4_2_12.serverTLSBootstrap is defined and before_4_2_12.serverTLSBootstrap != true
-  - name: "SCORED | 4.2.12 | PATCH | L1 | WORKER | Verify that the RotateKubeletServerCertificate argument is set to true"
+        TLSCipherSuites: "{{ kubelet_tls_cipher_suites }}"
+    when: before_4_2_12.TLSCipherSuites is defined and before_4_2_12.TLSCipherSuites != kubelet_tls_cipher_suites
+  - name: "SCORED | 4.2.12 | PATCH | L1 | WORKER | Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers"
     ansible.builtin.copy:
       content: '{{ after_4_2_12 | to_nice_yaml }}'
       dest: "{{ kubelet_config_file }}"
@@ -657,7 +657,7 @@
     - worker
 
 
-- name: "SCORED | 4.2.13 | PATCH | L1 | WORKER | Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers"
+- name: "SCORED | 4.2.13 | PATCH | L1 | WORKER | Ensure that a limit is set on pod PIDs"
   block:
   - name: "SCORED | 4.2.13 | PATCH | L1 | WORKER | Slurp file {{ kubelet_config_file }}"
     slurp:
@@ -669,18 +669,18 @@
   - name: "SCORED | 4.2.13 | PATCH | L1 | WORKER | Add new value"
     vars: 
       new_value_4_2_13:
-        TLSCipherSuites: "{{ kubelet_tls_cipher_suites }}"
+        PodPidsLimit: "{{ kubelet_pod_pid_limit }}"
     set_fact:
       after_4_2_13: "{{ before_4_2_13 | combine(new_value_4_2_13) }}"
-    when: before_4_2_13.TLSCipherSuites is not defined
+    when: before_4_2_13.PodPidsLimit is not defined
   - name: "SCORED | 4.2.13 | PATCH | L1 | WORKER | Update existing value"
     set_fact:
       after_4_2_13: "{{ before_4_2_13 | combine(after_4_2_13, recursive=True) }}"
     vars: 
       after_4_2_13:
-        TLSCipherSuites: "{{ kubelet_tls_cipher_suites }}"
-    when: before_4_2_13.TLSCipherSuites is defined and before_4_2_13.TLSCipherSuites != kubelet_tls_cipher_suites
-  - name: "SCORED | 4.2.13 | PATCH | L1 | WORKER | Ensure that the Kubelet only makes use of Strong Cryptographic Ciphers"
+        PodPidsLimit: "{{ kubelet_pod_pid_limit }}"
+    when: before_4_2_13.PodPidsLimit is defined and before_4_2_13.PodPidsLimit != kubelet_pod_pid_limit
+  - name: "SCORED | 4.2.13 | PATCH | L1 | WORKER | Ensure that a limit is set on pod PIDs"
     ansible.builtin.copy:
       content: '{{ after_4_2_13 | to_nice_yaml }}'
       dest: "{{ kubelet_config_file }}"
@@ -693,7 +693,6 @@
     - rule_4.2.13
     - patch
     - worker
-
 
 
 ########################################################

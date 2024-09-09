@@ -1,0 +1,41 @@
+# Validating Admission Policy
+# Name: Minimize the admission of Windows HostProcess Containers
+#       A Windows container making use of the hostProcess flag can interact with the underlying Windows cluster node.
+#       As per the Kubernetes documentation, this provides "privileged access" to the Windows node.
+# Author: Abhijit Jadhav
+# Docs: https://hub.armosec.io/docs/c-0202
+# Severity: High
+
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: "vap-cis-minimize-windows-hostprocess-policy-binding"
+spec:
+  policyName: "vap-cis-minimize-windows-hostprocess-policy"
+  validationActions: [Deny]
+  paramRef:
+    name: validation-parameters
+    parameterNotFoundAction: "Deny"
+  matchResources: {}
+
+### The namespace exclusion logic now moved into CRD, Parameter and embeded in Policy. This gives more flexibility on managing and maintaing common exclusions
+### You can still exclude additional app namespaces which are specific to the policy exclusion using following matchExpressions
+###
+# matchResources:
+#   namespaceSelector:
+#     matchExpressions:
+#     - key: kubernetes.io/metadata.name
+#       operator: NotIn
+#       values:
+#       - app-one-namespace
+#       - app-two-namespace
+###
+### OR using labels
+###
+# matchResources:
+#   namespaceSelector:
+#     matchExpressions:
+#       namsSpaceSelector:
+#         matchLabels:
+#           environment: prod
+

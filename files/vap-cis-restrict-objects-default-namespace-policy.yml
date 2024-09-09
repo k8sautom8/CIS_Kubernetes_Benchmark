@@ -58,5 +58,8 @@ spec:
         operations: ["CREATE", "UPDATE"]
         resources: ["leases"]
   validations:
-    - expression: "object.metadata.namespace != 'default'"
+    - expression: "!(object.metadata.namespace == 'default' && \
+                   !((object.kind == 'Service' && object.metadata.name == 'kubernetes') || \
+                   (object.kind == 'Endpoints' && object.metadata.name == 'kubernetes') || \
+                   (object.kind == 'Lease' && object.apiVersion == 'coordination.k8s.io/v1' && request.operation == 'UPDATE')))"
       message: "Creation of this resource type is not allowed in the default namespace. Please refer: https://hub.armosec.io/docs/c-0212"

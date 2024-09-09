@@ -9,6 +9,25 @@
     - audit
     - master
 
+- name: "SCORED | 3.1.2 | AUDIT | L1 | MASTER | Service account token authentication should not be used for users"
+  debug:
+    msg: "Alternative mechanisms provided by Kubernetes such as the use of OIDC should be implemented in place of service account tokens."
+  when: rule_3_1_2
+  tags:
+    - level1
+    - rule_3.1.2
+    - audit
+    - master
+
+- name: "SCORED | 3.1.3 | AUDIT | L1 | MASTER | Client certificate authentication should not be used for users"
+  debug:
+    msg: "Alternative mechanisms provided by Kubernetes such as the use of OIDC should be implemented in place of bootstrap tokens."
+  when: rule_3_1_3
+  tags:
+    - level1
+    - rule_3.1.3
+    - audit
+    - master
 
 - name: "SCORED | 3.2.1 | PATCH | L1 | MASTER | Ensure that a minimal audit policy is created"
   block:
